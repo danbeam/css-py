@@ -1,0 +1,15 @@
+TODO: Comments should be returned by the tokenizer so the parser can determine 
+whether to ignore them. This means the parser needs to allow COMMENT tokens at
+arbitrary locations.
+
+TODO: Add the ability to dereference the URI in an @import rule and to 
+(recursively) parse and inline the declarations from the referenced 
+stylesheet. (Working, but needs to be optional.)
+
+TODO: Add more options to the css-parse script.
+
+TODO: Be less strict about from parsing errors, such as malformed 
+delcarations, which the CSS 2.1 specification states a user agent MUST ignore.
+
+TODO: Coalesce and minimize declarations into their “shortcut” variants, e.g.
+“border” instead of “border-width,” “border-color,” etc.

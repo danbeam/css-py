@@ -1,0 +1,332 @@
+# -*- coding: utf-8 -*-
+'''
+Classes representing CSS syntactic concepts.
+'''
+
+import re
+import serialize
+
+re_hexcolor = re.compile(r'#[0-9a-fA-F]{3,6}$')
+
+class hexcolor(object):
+    '''
+    An RGB color in hex notation.
+    
+    The value must begin with a # character and contain 3 or 6 hex digits.
+    '''
+    def __init__(self, value):
+        if not re.match(re_hexcolor,value):            
+            raise ValueError, '''hexcolor values must start with # and contain 3 or 6 hex digits'''
+        
+        self.value = value[1:]
+
+    def __str__(self):
+        return self.serialize(str)
+    
+    def __unicode__(self):
+        return self.serialize(unicode)
+    
+    def __repr__(self):
+        return 'hexcolor(' + repr(self.value) + ')'
+
+    def serialize(self, serializer):
+        return serialize.serialize_hexcolor(self, serializer)
+    
+
+class function(object):
+    '''
+    A term in functional notation, e.g. colors specified with rgb().
+    
+    Note: although URIs are specified with the functional notation url(),
+    they are a distinct type of data.
+    '''
+    def __init__(self, name, parameters):
+        self.name = name
+        self.parameters = parameters
+
+    def __str__(self):
+        return self.serialize(str)
+    
+    def __unicode__(self):
+        return self.serialize(unicode)
+    
+    def __repr__(self):
+        r = 'function(' + repr(self.name)
+        r += ',' + repr(self.parameters)
+        r += ')'
+        return r
+
+    def serialize(self, serializer):
+        return serialize.serialize_function(self, serializer)
+    
+
+class uri(object):
+    '''
+    An URI.
+    '''
+    def __init__(self, url):
+        if isinstance(url, string):
+            url = url.value
+        self.url = url
+
+    def __str__(self):
+        return self.serialize(str)
+    
+    def __unicode__(self):
+        return self.serialize(unicode)
+    
+    def __repr__(self):
+        return 'uri(' + repr(self.url) + ')'
+
+    def serialize(self, serializer):
+        return serialize.serialize_uri(self, serializer)
+
+class string(object):
+    '''
+    A string of characters delimited by quotation marks.
+    '''
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return self.serialize(str)
+
+    def __unicode__(self):
+        return self.serialize(unicode)
+
+    def __repr__(self):
+        return 'string(' + repr(self.value) + ')'
+
+    def serialize(self, serializer):
+        return serialize.serialize_string(self, serializer)
+
+class ident(object):
+    '''
+    An identifier.
+    '''
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return self.serialize(str)
+
+    def __unicode__(self):
+        return self.serialize(unicode)
+
+    def __repr__(self):
+        return 'ident(' + repr(self.name) + ')'
+
+    def serialize(self, serializer):
+        return serialize.serialize_ident(self, serializer)
+
+class term(object):
+    '''
+    An expression term, other than a ident, function or hexcolor.
+    
+    Quantitative terms, such as EMS may have a - or + sign as
+    a unary operator.
+    '''
+    def __init__(self, value, unary_operator=None):
+        if unary_operator and -1 == '-+'.find(unary_operator):
+            raise ValueError, '''unary operator, if given, must be - or +'''
+        self.value = value
+        self.unary_operator = unary_operator
+
+    def __str__(self):
+        return self.serialize(str)
+    
+    def __unicode__(self):
+        return self.serialize(unicode)
+    
+    def __repr__(self):
+        r = 'term(' + repr(self.value)
+        if self.unary_operator:
+            r += ', unary_operator=' + repr(self.unary_operator)
+        r += ')'
+        return r
+
+    def serialize(self, serializer):
+        return serialize.serialize_term(self, serializer)
+    
+
+class declaration(object):
+    '''
+    A property-value declaration with an optional important flag.
+    '''
+    def __init__(self, property, value, important=False):
+        self.property = property
+        self.value = value
+        self.important = important
+
+    def __str__(self):
+        return self.serialize(str)
+    
+    def __unicode__(self):
+        return self.serialize(unicode)
+    
+    def __repr__(self):
+        r = 'declaration(' + repr(self.property)
+        r += ',' + repr(self.value)
+        if self.important:
+            r += ', important=True'
+        r += ')'
+        return r
+
+    def serialize(self, serializer):
+        return serialize.serialize_declaration(self, serializer)
+    
+
+class ruleset(object):
+    '''
+    A list of declarations for a given list of selectors.
+    '''
+    def __init__(self, selectors, declarations=None):
+        self.selectors = selectors
+        self.declarations = declarations or list()
+
+    def __str__(self):
+        return self.serialize(str)
+    
+    def __unicode__(self):
+        return self.serialize(unicode)
+    
+    def __repr__(self):
+        r = 'ruleset(' + repr(self.selectors)
+        if self.declarations:
+            r += ', declarations=' + repr(self.declarations)
+        r += ')'
+        return r
+
+    def serialize(self, serializer):
+        return serialize.serialize_ruleset(self, serializer)
+
+class Charset(object):
+    '''
+    A @charset rule indicating the character encoding of a stylesheet.
+    '''
+    def __init__(self, encoding):
+        self.encoding = encoding
+
+    def __str__(self):
+        return self.serialize(str)
+
+    def __unicode__(self):
+        return self.serialize(unicode)
+
+    def __repr__(self):
+        return 'Charset(' + repr(self.encoding) + ')'
+
+    def __serialize__(self, serializer):
+        return serialize.serialize_charset(self, serializer)
+    
+
+class Page(object):
+    '''
+    A @page rule statement containing a list of declarations.
+    
+    The rule may have a pseudo-page specifer like :left or :right.
+    '''
+    def __init__(self, declarations=None, pseudo_page=None):
+        self.declarations = declarations or list()
+        self.pseudo_page = pseudo_page
+
+    def __str__(self):
+        return self.serialize(str)
+    
+    def __unicode__(self):
+        return self.serialize(unicode)
+    
+    def __repr__(self):
+        r = 'Page(' + repr(self.declarations)
+        if self.pseudo_page:
+            r += ', pseudo_page=' + repr(self.pseudo_page)
+        r += ')'
+        return r
+
+    def serialize(self, serializer):
+        return serialize.serialize_Page(self, serializer)
+    
+
+class Media(object):
+    '''
+    An @media rule statement containing a list of rulesets.
+    '''
+    def __init__(self, media_types, rulesets=None):
+        self.media_types = media_types
+        self.rulesets = rulesets or list()
+
+    def __str__(self):
+        return self.serialize(str)
+    
+    def __unicode__(self):
+        return self.serialize(unicode)
+    
+    def __repr__(self):
+        r = 'Media(' + repr(self.media_types)
+        if self.rulesets:
+            r += ', rulesets=' + repr(self.rulesets)
+        r += ')'
+        return r 
+
+    def serialize(self, serializer):
+        return serialize.serialize_Media(self, serializer)
+
+class Import(object):
+    '''
+    An @import rule statement.
+    
+    May have an optional list of media type specifiers.
+    '''
+    def __init__(self, source, media_types=None):
+        if not isinstance(source, uri):
+            source = uri(source)
+        self.source = source
+        self.media_types = media_types or list()
+
+    def __str__(self):
+        return self.serialize(str)
+    
+    def __unicode__(self):
+        return self.serialize(unicode)
+    
+    def __repr__(self):
+        r = 'Import(' + repr(self.source)
+        if self.media_types:
+            r += ', media_types=' + repr(self.media_types)
+        r += ')'
+        return r
+
+    def serialize(self, serializer):
+        return serialize.serialize_Import(self, serializer)
+
+class stylesheet(object):
+    '''
+    A CSS stylesheet containing a list of statements.
+    
+    May have an optional list of import rules and an optional 
+    character set specification.
+    '''
+    def __init__(self, statements, imports=None, charset=None):
+        self.statements = statements
+        self.imports = imports or list()
+        self.charset = charset
+    
+    def __str__(self):
+        return self.serialize(str)
+
+    def __unicode__(self):
+        return self.serialize(unicode)
+    
+    def __repr__(self):
+        r = 'stylesheet(' + repr(self.statements)
+        if self.imports:
+            r += ', imports=' + repr(self.imports)
+        if self.charset:
+            r += ', charset=' + repr(self.charset)
+        r += ')'
+        return r
+
+    def serialize(self, serializer):
+        return serialize.serialize_stylesheet(self, serializer)        
+    
+
