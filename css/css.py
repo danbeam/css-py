@@ -8,7 +8,7 @@ import serialize
 
 re_hexcolor = re.compile(r'#[0-9a-fA-F]{3,6}$')
 
-class hexcolor(object):
+class Hexcolor(object):
     '''
     An RGB color in hex notation.
     
@@ -16,7 +16,7 @@ class hexcolor(object):
     '''
     def __init__(self, value):
         if not re.match(re_hexcolor,value):            
-            raise ValueError, '''hexcolor values must start with # and contain 3 or 6 hex digits'''
+            raise ValueError, '''Hexcolor values must start with # and contain 3 or 6 hex digits.'''
         
         self.value = value[1:]
 
@@ -27,13 +27,13 @@ class hexcolor(object):
         return self.serialize(unicode)
     
     def __repr__(self):
-        return 'hexcolor(' + repr(self.value) + ')'
+        return 'Hexcolor(%r)' % ('#'+self.value,)
 
     def serialize(self, serializer):
-        return serialize.serialize_hexcolor(self, serializer)
+        return serialize.serialize_Hexcolor(self, serializer)
     
 
-class function(object):
+class Function(object):
     '''
     A term in functional notation, e.g. colors specified with rgb().
     
@@ -51,21 +51,18 @@ class function(object):
         return self.serialize(unicode)
     
     def __repr__(self):
-        r = 'function(' + repr(self.name)
-        r += ',' + repr(self.parameters)
-        r += ')'
-        return r
+        return 'Function(%r, %r)' % (self.name, self.parameters)
 
     def serialize(self, serializer):
-        return serialize.serialize_function(self, serializer)
+        return serialize.serialize_Function(self, serializer)
     
 
-class uri(object):
+class Uri(object):
     '''
     An URI.
     '''
     def __init__(self, url):
-        if isinstance(url, string):
+        if isinstance(url, String):
             url = url.value
         self.url = url
 
@@ -76,12 +73,12 @@ class uri(object):
         return self.serialize(unicode)
     
     def __repr__(self):
-        return 'uri(' + repr(self.url) + ')'
+        return 'Uri(%r)' % (self.url,)
 
     def serialize(self, serializer):
-        return serialize.serialize_uri(self, serializer)
+        return serialize.serialize_Uri(self, serializer)
 
-class string(object):
+class String(object):
     '''
     A string of characters delimited by quotation marks.
     '''
@@ -95,12 +92,12 @@ class string(object):
         return self.serialize(unicode)
 
     def __repr__(self):
-        return 'string(' + repr(self.value) + ')'
+        return 'String(%r)' % (self.value,)
 
     def serialize(self, serializer):
-        return serialize.serialize_string(self, serializer)
+        return serialize.serialize_String(self, serializer)
 
-class ident(object):
+class Ident(object):
     '''
     An identifier.
     '''
@@ -114,14 +111,14 @@ class ident(object):
         return self.serialize(unicode)
 
     def __repr__(self):
-        return 'ident(' + repr(self.name) + ')'
+        return 'Ident(%r)' % (self.name,)
 
     def serialize(self, serializer):
-        return serialize.serialize_ident(self, serializer)
+        return serialize.serialize_Ident(self, serializer)
 
-class term(object):
+class Term(object):
     '''
-    An expression term, other than a ident, function or hexcolor.
+    An expression term, other than a Ident, Function or Hexcolor.
     
     Quantitative terms, such as EMS may have a - or + sign as
     a unary operator.
@@ -139,17 +136,17 @@ class term(object):
         return self.serialize(unicode)
     
     def __repr__(self):
-        r = 'term(' + repr(self.value)
+        r = 'Term(' + repr(self.value)
         if self.unary_operator:
             r += ', unary_operator=' + repr(self.unary_operator)
         r += ')'
         return r
 
     def serialize(self, serializer):
-        return serialize.serialize_term(self, serializer)
+        return serialize.serialize_Term(self, serializer)
     
 
-class declaration(object):
+class Declaration(object):
     '''
     A property-value declaration with an optional important flag.
     '''
@@ -165,7 +162,7 @@ class declaration(object):
         return self.serialize(unicode)
     
     def __repr__(self):
-        r = 'declaration(' + repr(self.property)
+        r = 'Declaration(' + repr(self.property)
         r += ',' + repr(self.value)
         if self.important:
             r += ', important=True'
@@ -173,10 +170,10 @@ class declaration(object):
         return r
 
     def serialize(self, serializer):
-        return serialize.serialize_declaration(self, serializer)
+        return serialize.serialize_Declaration(self, serializer)
     
 
-class ruleset(object):
+class Ruleset(object):
     '''
     A list of declarations for a given list of selectors.
     '''
@@ -191,14 +188,14 @@ class ruleset(object):
         return self.serialize(unicode)
     
     def __repr__(self):
-        r = 'ruleset(' + repr(self.selectors)
+        r = 'Ruleset(' + repr(self.selectors)
         if self.declarations:
             r += ', declarations=' + repr(self.declarations)
         r += ')'
         return r
 
     def serialize(self, serializer):
-        return serialize.serialize_ruleset(self, serializer)
+        return serialize.serialize_Ruleset(self, serializer)
 
 class Charset(object):
     '''
@@ -214,7 +211,7 @@ class Charset(object):
         return self.serialize(unicode)
 
     def __repr__(self):
-        return 'Charset(' + repr(self.encoding) + ')'
+        return 'Charset(%r)' % (self.encoding,)
 
     def __serialize__(self, serializer):
         return serialize.serialize_charset(self, serializer)
@@ -278,8 +275,8 @@ class Import(object):
     May have an optional list of media type specifiers.
     '''
     def __init__(self, source, media_types=None):
-        if not isinstance(source, uri):
-            source = uri(source)
+        if not isinstance(source, Uri):
+            source = Uri(source)
         self.source = source
         self.media_types = media_types or list()
 
@@ -299,7 +296,7 @@ class Import(object):
     def serialize(self, serializer):
         return serialize.serialize_Import(self, serializer)
 
-class stylesheet(object):
+class Stylesheet(object):
     '''
     A CSS stylesheet containing a list of statements.
     
@@ -318,7 +315,7 @@ class stylesheet(object):
         return self.serialize(unicode)
     
     def __repr__(self):
-        r = 'stylesheet(' + repr(self.statements)
+        r = 'Stylesheet(' + repr(self.statements)
         if self.imports:
             r += ', imports=' + repr(self.imports)
         if self.charset:
@@ -327,6 +324,6 @@ class stylesheet(object):
         return r
 
     def serialize(self, serializer):
-        return serialize.serialize_stylesheet(self, serializer)        
+        return serialize.serialize_Stylesheet(self, serializer)        
     
 

@@ -20,11 +20,14 @@ def URI_value(x):
     url = normalize(x)[4:-1].strip()
     if -1 != '"\''.find(url[0]):
         url = STRING_value(url)
-    return css.uri(url)
+    return css.Uri(url)
 
 def STRING_value(x):
     q = x[0]
-    return css.string(x[1:-1].replace(u'\\'+q,q))
+    return css.String(x[1:-1].replace(u'\\'+q,q))
+
+def IDENT_value(x):
+    return css.Ident(x)
 
 class cssparser(object):
     tokens = csslexer.tokens
@@ -39,7 +42,7 @@ class cssparser(object):
             if p.slice[1].type == 'S':
                 p[0] = p[2]
             else:
-                p[0] = css.stylesheet(p[2].statements, p[2].imports, charset=p[1])
+                p[0] = css.Stylesheet(p[2].statements, p[2].imports, charset=p[1])
         else:
             p[0] = p[1]
     
@@ -65,11 +68,11 @@ class cssparser(object):
         else:
             statements = p[1]
         
-        if isinstance(statements, css.stylesheet):
+        if isinstance(statements, css.Stylesheet):
             imports.extend(statements.imports)
             statements = statements.statements
         
-        p[0] = css.stylesheet(statements, imports)
+        p[0] = css.Stylesheet(statements, imports)
     
     def p_stylesheet3(self, p):
         '''
@@ -83,7 +86,7 @@ class cssparser(object):
         '''
         p[0] = list()
         if len(p) == 3:
-            if (isinstance(p[1], css.ruleset) 
+            if (isinstance(p[1], css.Ruleset) 
                 or isinstance(p[1], css.Media)
                 or isinstance(p[1], css.Page)):
                 p[0].append(p[1])
@@ -163,7 +166,7 @@ class cssparser(object):
         medium : IDENT S
                | IDENT
         '''
-        p[0] = css.ident(p[1])
+        p[0] = IDENT_value(p[1])
     
     def p_page(self, p):
         '''
@@ -206,7 +209,7 @@ class cssparser(object):
               | page_x
         '''
         p[0] = list()
-        if isinstance(p[1], css.declaration):
+        if isinstance(p[1], css.Declaration):
             p[0].append(p[1])
             
             if len(p) == 4:
@@ -239,7 +242,7 @@ class cssparser(object):
         '''
         pseudo_page : ':' IDENT
         '''
-        p[0] = css.ident(p[2])
+        p[0] = IDENT_value(p[2])
     
     def p_import(self, p):
         '''
@@ -335,7 +338,7 @@ class cssparser(object):
         property : IDENT S
                  | IDENT 
         '''
-        p[0] = css.ident(p[1])
+        p[0] = IDENT_value(p[1])
     
     def p_ruleset(self, p):
         '''
@@ -349,11 +352,11 @@ class cssparser(object):
         
         selectors = [ p[1] ]
         
-        if isinstance(declarations, css.ruleset):
+        if isinstance(declarations, css.Ruleset):
             selectors.extend(declarations.selectors)
             declarations = declarations.declarations
             
-        p[0] = css.ruleset(selectors, declarations)
+        p[0] = css.Ruleset(selectors, declarations)
     
     def p_ruleset2(self, p):
         '''
@@ -387,7 +390,7 @@ class cssparser(object):
                  | ruleset_x
         '''
         p[0] = list()
-        if isinstance(p[1], css.declaration):
+        if isinstance(p[1], css.Declaration):
             p[0].append(p[1])
             
             if len(p) == 4:
@@ -525,7 +528,7 @@ class cssparser(object):
         else:
             value, important = p[3][0], 2 == len(p[3])
         
-        p[0] = css.declaration(p[1],value,important)
+        p[0] = css.Declaration(p[1],value,important)
     
     def p_declaration2(self, p):
         '''
@@ -568,20 +571,20 @@ class cssparser(object):
              | function
         '''
         if len(p) == 3 and -1 != '-+'.find(p[1]):
-            p[0] = css.term(p[2],p[1])
+            p[0] = css.Term(p[2],p[1])
         else:
             t, val = p.slice[1], p[1]
 
-            if isinstance(val, css.function) or isinstance(val, css.hexcolor):
+            if isinstance(val, css.Function) or isinstance(val, css.Hexcolor):
                 p[0] = val
             elif t.type == 'URI':
                 p[0] = URI_value(val)
             elif t.type == 'IDENT':
-                p[0] = css.ident(val)
+                p[0] = IDENT_value(val)
             elif t.type == 'STRING':
                 p[0] = STRING_value(val)
             else:
-                p[0] = css.term(val)
+                p[0] = css.Term(val)
     
     def p_term_quant(self, p):
         '''
@@ -611,9 +614,9 @@ class cssparser(object):
         '''
         name = p[1][:-1] # p[1] has a trailing open-paren
         if len(p) == 4:
-            p[0] = css.function(name, p[3])
+            p[0] = css.Function(name, p[3])
         else:
-            p[0] = css.function(name, p[2])
+            p[0] = css.Function(name, p[2])
     
     def p_function2(self, p):
         '''
@@ -627,7 +630,7 @@ class cssparser(object):
         hexcolor : HASH S
                  | HASH
         '''
-        p[0] = css.hexcolor(p[1])
+        p[0] = css.Hexcolor(p[1])
     
     def p_error(self, p):
         print "Syntax error at '%r'" % p

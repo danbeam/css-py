@@ -6,22 +6,22 @@ A serializer for CSS.
 import css
 
 def serialize(obj, serializer):
-    if isinstance(obj, css.hexcolor):
-        return serialize_hexcolor(obj, serializer)
-    elif isinstance(obj, css.function):
-        return serialize_function(obj, serializer)
-    elif isinstance(obj, css.uri):
-        return serialize_uri(obj, serializer)
-    elif isinstance(obj, css.ident):
-        return serialize_ident(obj, serializer)
-    elif isinstance(obj, css.string):
-        return serialize_string(obj, serializer)
-    elif isinstance(obj, css.term):
-        return serialize_term(obj, serializer)
-    elif isinstance(obj, css.declaration):
-        return serialize_declaration(obj, serializer)
-    elif isinstance(obj, css.ruleset):
-        return serialize_ruleset(obj, serializer)
+    if isinstance(obj, css.Hexcolor):
+        return serialize_Hexcolor(obj, serializer)
+    elif isinstance(obj, css.Function):
+        return serialize_Function(obj, serializer)
+    elif isinstance(obj, css.Uri):
+        return serialize_Uri(obj, serializer)
+    elif isinstance(obj, css.String):
+        return serialize_String(obj, serializer)
+    elif isinstance(obj, css.Ident):
+        return serialize_Ident(obj, serializer)
+    elif isinstance(obj, css.Term):
+        return serialize_Term(obj, serializer)
+    elif isinstance(obj, css.Declaration):
+        return serialize_Declaration(obj, serializer)
+    elif isinstance(obj, css.Ruleset):
+        return serialize_Ruleset(obj, serializer)
     elif isinstance(obj, css.Charset):
         return serialize_Charset(obj, serializer)
     elif isinstance(obj, css.Page):
@@ -30,43 +30,43 @@ def serialize(obj, serializer):
         return serialize_Media(obj, serializer)
     elif isinstance(obj, css.Import):
         return serialize_Import(obj, serializer)
-    elif isinstance(obj, css.stylesheet):
-        return serialize_stylesheet(obj, serializer)
+    elif isinstance(obj, css.Stylesheet):
+        return serialize_Stylesheet(obj, serializer)
     else:
         return serializer(obj)
 
-def serialize_hexcolor(obj, serializer):
+def serialize_Hexcolor(obj, serializer):
     return serializer('#') + serializer(obj.value)
 
-def serialize_function(obj, serializer):
+def serialize_Function(obj, serializer):
     return serializer(obj.name) + serializer('(') + serializer(obj.parameters) + serializer(')')
 
-def serialize_uri(obj, serializer):
+def serialize_Uri(obj, serializer):
     return serializer('url(') + serializer(obj.url) + serializer(')')
 
 def serialize_string(obj, serializer):
     s = serializer(obj.value.replace(u'"', u'\\"'))
     return serializer('"') + s + serializer('"')
 
-def serialize_ident(obj, serializer):
+def serialize_Ident(obj, serializer):
     return serializer(obj.name)
 
-def serialize_term(obj, serializer):
+def serialize_Term(obj, serializer):
     s = serializer(obj.value)
     if obj.unary_operator:
         s = serializer(obj.unary_operator) + s
     return s
 
-def serialize_declaration(obj, serializer):
-    s = serialize_ident(obj.property, serializer) 
+def serialize_Declaration(obj, serializer):
+    s = serialize_Ident(obj.property, serializer) 
     s += serializer(':') + serializer(obj.value)
     if obj.important:
         s += serializer(' !important')
     return s
 
-def serialize_ruleset(obj, serializer):
+def serialize_Ruleset(obj, serializer):
     s = serialize_selector_group(obj.selectors, serializer)
-    s += serialize_declaration_block(obj.declarations, serializer)
+    s += serialize_Declaration_block(obj.declarations, serializer)
     return s
 
 def serialize_Charset(obj, serializer):
@@ -76,13 +76,13 @@ def serialize_Page(obj, serializer):
     s = serializer('@page')
     if obj.pseudo_page:
         s += serialize_pseudo(obj.pseudo_page, serializer)
-    s += serialize_declaration_block(obj.declarations, serializer)
+    s += serialize_Declaration_block(obj.declarations, serializer)
     return s
 
 def serialize_Media(obj, serializer):
     s = serializer('@media ')
     s += serializer(',').join((serializer(x) for x in obj.media_types))
-    s += serializer('{') + serializer('\n').join([serialize_ruleset(x, serializer) for x in obj.rulesets]) + serializer('}')
+    s += serializer('{') + serializer('\n').join([serialize_Ruleset(x, serializer) for x in obj.rulesets]) + serializer('}')
     return s
 
 def serialize_Import(obj, serializer):
@@ -92,7 +92,7 @@ def serialize_Import(obj, serializer):
     s += serializer(';')
     return s
 
-def serialize_stylesheet(obj, serializer):
+def serialize_Stylesheet(obj, serializer):
     s = serializer('')
     if obj.charset:
         s += serialize_Charset(obj.charset, serializer) + serializer('\n')
@@ -102,10 +102,10 @@ def serialize_stylesheet(obj, serializer):
     return s
 
 def serialize_pseudo(obj, serializer):
-    return serializer(':') + serialize_ident(obj, serializer)
+    return serializer(':') + serialize_Ident(obj, serializer)
 
 def serialize_selector_group(selectors, serializer):
     return serializer(',').join((serializer(x) for x in selectors))
 
-def serialize_declaration_block(declarations, serializer):
-    return serializer('{') + serializer(';').join((serialize_declaration(x, serializer) for x in declarations)) + serializer('}')
+def serialize_Declaration_block(declarations, serializer):
+    return serializer('{') + serializer(';').join((serialize_Declaration(x, serializer) for x in declarations)) + serializer('}')

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from urllib2 import urlopen
+from codecs import EncodedFile
 from optparse import OptionParser
 from css import css, csslex, cssyacc
 from css.serialize import serialize
@@ -29,7 +30,7 @@ def export(stylesheet):
 
     for i in stylesheet.imports:
         url = i.source
-        if isinstance(url, css.uri):
+        if isinstance(url, css.Uri):
             url = url.url
             importuri = uri.resolve(fileuri, url)
             importfile = urlopen(importuri)
