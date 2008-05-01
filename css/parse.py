@@ -3,21 +3,10 @@
 
 from urllib2 import urlopen
 from codecs import EncodedFile
-from optparse import OptionParser
-from css import css, csslex, cssyacc
-from css.serialize import serialize
+import css, csslex, cssyacc
+from serialize import serialize
 from uri import uri
 
-opts = OptionParser("usage: %prog [options] filename")
-
-options, args = opts.parse_args()
-
-if 1 != len(args):
-    opts.error("no filename given")
-
-fileuri = args[0]
-
-inputfile = urlopen(fileuri)
 
 def parse(data):
     parser = cssyacc.yacc()
@@ -39,5 +28,18 @@ def export(stylesheet):
     for s in stylesheet.statements:
         print serialize(s, unicode)
 
-stylesheet = parse(inputfile.read())
-export(stylesheet)
+if '__main__' == __name__:
+    from optparse import OptionParser
+    opts = OptionParser("usage: %prog [options] filename")
+
+    options, args = opts.parse_args()
+
+    if 1 != len(args):
+        opts.error("no filename given")
+
+    fileuri = args[0]
+
+    inputfile = urlopen(fileuri)
+
+    stylesheet = parse(inputfile.read())
+    export(stylesheet)
