@@ -4,7 +4,12 @@ Classes representing CSS syntactic concepts.
 '''
 
 import re
+import itertools
 import serialize
+
+__all__ = ('Hexcolor', 'Function', 'Uri', 'String', 'Ident',
+           'Term', 'Declaration', 'Ruleset', 'Charset', 'Page',
+           'Media', 'Import', 'Stylesheet')
 
 re_hexcolor = re.compile(r'#[0-9a-fA-F]{3,6}$')
 
@@ -193,6 +198,15 @@ class Ruleset(object):
             r += ', declarations=' + repr(self.declarations)
         r += ')'
         return r
+    
+    def __iter__(self):
+        return iter(self.declarations)
+
+    def __len__(self):
+        return len(self.declarations)
+
+    def __getitem__(self, key):
+        return self.declarations[key]
 
     def serialize(self, serializer):
         return serialize.serialize_Ruleset(self, serializer)
@@ -239,6 +253,15 @@ class Page(object):
             r += ', pseudo_page=' + repr(self.pseudo_page)
         r += ')'
         return r
+    
+    def __iter__(self):
+        return iter(self.declarations)
+
+    def __len__(self):
+        return len(self.declarations)
+
+    def __getitem__(self, key):
+        return self.declarations[key]
 
     def serialize(self, serializer):
         return serialize.serialize_Page(self, serializer)
@@ -264,6 +287,15 @@ class Media(object):
             r += ', rulesets=' + repr(self.rulesets)
         r += ')'
         return r 
+    
+    def __iter__(self):
+        return iter(self.rulesets)
+
+    def __len__(self):
+        return len(self.rulesets)
+
+    def __getitem__(self, key):
+        return self.rulesets[key]
 
     def serialize(self, serializer):
         return serialize.serialize_Media(self, serializer)
@@ -322,6 +354,24 @@ class Stylesheet(object):
             r += ', charset=' + repr(self.charset)
         r += ')'
         return r
+    
+    def __iter__(self):
+        its = list()
+        if self.charset:
+            its.append([self.charset])
+        if self.imports:
+            its.append(self.imports)
+        its.append(self.statements)
+        return itertools.chain(*its)
+
+    def __len__(self):
+        n = len(self.statements) + len(self.imports)
+        if self.charset:
+            n += 1
+        return n
+
+    def __getitem__(self, key):
+        return list(self)[key]
 
     def serialize(self, serializer):
         return serialize.serialize_Stylesheet(self, serializer)        

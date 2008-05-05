@@ -7,6 +7,7 @@ import css, csslex, cssyacc
 from serialize import serialize
 from uri import uri
 
+__all__ = ('parse','export')
 
 def parse(data):
     parser = cssyacc.yacc()
@@ -28,6 +29,13 @@ def export(stylesheet):
     for s in stylesheet.statements:
         print serialize(s, unicode)
 
+def main(fileuri, options):
+    inputfile = urlopen(fileuri)
+
+    stylesheet = parse(inputfile.read())
+    export(stylesheet)
+    
+
 if '__main__' == __name__:
     from optparse import OptionParser
     opts = OptionParser("usage: %prog [options] filename")
@@ -36,10 +44,5 @@ if '__main__' == __name__:
 
     if 1 != len(args):
         opts.error("no filename given")
-
-    fileuri = args[0]
-
-    inputfile = urlopen(fileuri)
-
-    stylesheet = parse(inputfile.read())
-    export(stylesheet)
+        
+    main(args[0],options)
