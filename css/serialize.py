@@ -5,6 +5,17 @@ A serializer for CSS.
 
 import css
 
+# This module comprises all serialization code for the
+# syntax object of CSS, kept here so that the serialization
+# strategy for the whole system can be modified easily
+# without the need to touch a dozen classes.  
+#
+# Adding a
+# new type of data requires another conditional in
+# serialize(), and possibly a new serialize_<type>()
+# method.  (The data types of CSS are finite and the number
+# relatively small, so this should be a rare occassion.)
+
 def serialize(obj, serializer):
     if isinstance(obj, css.Hexcolor):
         return serialize_Hexcolor(obj, serializer)
@@ -44,7 +55,7 @@ def serialize_Function(obj, serializer):
 def serialize_Uri(obj, serializer):
     return serializer('url(') + serializer(obj.url) + serializer(')')
 
-def serialize_string(obj, serializer):
+def serialize_String(obj, serializer):
     s = serializer(obj.value.replace(u'"', u'\\"'))
     return serializer('"') + s + serializer('"')
 
@@ -65,7 +76,7 @@ def serialize_Declaration(obj, serializer):
     return s
 
 def serialize_Ruleset(obj, serializer):
-    s = serialize_selector_group(obj.selectors, serializer)
+    s = serialize_Selector_group(obj.selectors, serializer)
     s += serialize_Declaration_block(obj.declarations, serializer)
     return s
 
@@ -75,7 +86,7 @@ def serialize_Charset(obj, serializer):
 def serialize_Page(obj, serializer):
     s = serializer('@page')
     if obj.pseudo_page:
-        s += serialize_pseudo(obj.pseudo_page, serializer)
+        s += serialize_Pseudo(obj.pseudo_page, serializer)
     s += serialize_Declaration_block(obj.declarations, serializer)
     return s
 
@@ -101,10 +112,10 @@ def serialize_Stylesheet(obj, serializer):
     s += serializer('\n').join((serialize(x, serializer) for x in obj.statements))
     return s
 
-def serialize_pseudo(obj, serializer):
+def serialize_Pseudo(obj, serializer):
     return serializer(':') + serialize_Ident(obj, serializer)
 
-def serialize_selector_group(selectors, serializer):
+def serialize_Selector_group(selectors, serializer):
     return serializer(',').join((serializer(x) for x in selectors))
 
 def serialize_Declaration_block(declarations, serializer):
