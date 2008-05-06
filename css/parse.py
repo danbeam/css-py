@@ -4,7 +4,6 @@
 from urllib2 import urlopen
 from codecs import EncodedFile
 import css, csslex, cssyacc
-from serialize import serialize
 from uri import uri
 
 __all__ = ('parse','export')
@@ -14,26 +13,26 @@ def parse(data):
     parser.lexer = csslex.lex()
     return parser.parse(data, debug=True)
 
-def export(stylesheet):
-    if stylesheet.charset:
-        print serialize(stylesheet.charset, unicode)
-
-    for i in stylesheet.imports:
-        url = i.source
+def export(base, stylesheet, recursive=False):
+    def recur(rule):
+        url = rule.source
         if isinstance(url, css.Uri):
             url = url.url
-            importuri = uri.resolve(fileuri, url)
-            importfile = urlopen(importuri)
-            export(parse(importfile.read()))
+        url = uri.resolve(base, url)
+        export(base, parse(urlopen(url).read()))
 
-    for s in stylesheet.statements:
-        print serialize(s, unicode)
+    for rule in stylesheet:
+        if recursive and isinstance(rule, css.Import):
+            recur(rule)
+        else:
+            print rule.datum(unicode)
+
 
 def main(fileuri, options):
     inputfile = urlopen(fileuri)
 
     stylesheet = parse(inputfile.read())
-    export(stylesheet)
+    export(fileuri, stylesheet)
     
 
 if '__main__' == __name__:

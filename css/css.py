@@ -12,6 +12,9 @@ __all__ = ('Hexcolor', 'Function', 'Uri', 'String', 'Ident',
            'Media', 'Import', 'Stylesheet')
 
 class SyntaxObject(object):
+    '''
+    An abstract type of syntactic construct.
+    '''
     def __str__(self):
         return self.datum(str)
 
@@ -145,6 +148,9 @@ class Declaration(SyntaxObject):
 class Ruleset(SyntaxObject):
     '''
     A list of declarations for a given list of selectors.
+
+    When iterating, yields each of its declarations in order of
+    their appearance.
     '''
     def __init__(self, selectors, declarations=None):
         self.selectors = selectors
@@ -188,6 +194,9 @@ class Page(SyntaxObject):
     A @page rule statement containing a list of declarations.
     
     The rule may have a pseudo-page specifer like :left or :right.
+
+    When iterating, yields each of its declarations in order of
+    their appearance.
     '''
     def __init__(self, declarations=None, pseudo_page=None):
         self.declarations = declarations or list()
@@ -216,6 +225,9 @@ class Page(SyntaxObject):
 class Media(SyntaxObject):
     '''
     An @media rule statement containing a list of rulesets.
+
+    When iterating, yields each of its rulesets in order of
+    their appearance.
     '''
     def __init__(self, media_types, rulesets=None):
         self.media_types = media_types
@@ -268,6 +280,9 @@ class Stylesheet(SyntaxObject):
     
     May have an optional list of import rules and an optional 
     character set specification.
+
+    When iterating, yields each of its rules, including @import 
+    and @charset rules, in order of their appearance.
     '''
     def __init__(self, statements, imports=None, charset=None):
         self.statements = statements
