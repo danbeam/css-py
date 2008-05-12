@@ -12,13 +12,21 @@ __all__ = ('Hexcolor', 'Function', 'Uri', 'String', 'Ident',
            'Media', 'Import', 'Stylesheet')
 
 class SyntaxObject(object):
-    '''
-    An abstract type of syntactic construct.
-    '''
+    '''An abstract type of syntactic construct.'''
     def __str__(self):
+        '''
+        Returns an ASCII string representation.
+
+        Delegated to subclasses by calling `self.datum(str)`.
+        '''
         return self.datum(str)
 
     def __unicode__(self):
+        '''
+        Returns an Unicode string representation.
+
+        Delegated to subclasses by calling `self.datum(str)`.
+        '''
         return self.datum(unicode)
 
 re_hexcolor = re.compile(r'#[0-9a-fA-F]{3,6}$')
@@ -26,11 +34,12 @@ re_hexcolor = re.compile(r'#[0-9a-fA-F]{3,6}$')
 class Hexcolor(SyntaxObject):
     '''
     An RGB color in hex notation.
-    
-    The value must begin with a # character and contain 3 or 6 hex digits.
     '''
     def __init__(self, value):
-        if not re.match(re_hexcolor,value):            
+        '''
+        The given value must begin with a # character and contain 3 or 6 hex digits.
+        '''
+        if not re.match(re_hexcolor,value):
             raise ValueError, '''Hexcolor values must start with # and contain 3 or 6 hex digits.'''
         
         self.value = value[1:]
@@ -148,11 +157,12 @@ class Declaration(SyntaxObject):
 class Ruleset(SyntaxObject):
     '''
     A list of declarations for a given list of selectors.
-
-    When iterating, yields each of its declarations in order of
-    their appearance.
     '''
     def __init__(self, selectors, declarations=None):
+        # Implementation detail: declarations are stored in a list, rather
+        # than a property => value mapping, because a property may be
+        # repeated in the Ruleset.  (Semantically, the last value takes
+        # precedence over any earlier values for the same property.)
         self.selectors = selectors
         self.declarations = declarations or list()
 
@@ -164,13 +174,30 @@ class Ruleset(SyntaxObject):
         return r
     
     def __iter__(self):
+        '''Iterates the list of declarations.'''
         return iter(self.declarations)
 
     def __len__(self):
+        '''Returns the number of declarations.'''
         return len(self.declarations)
 
-    def __getitem__(self, key):
-        return self.declarations[key]
+    def __getitem__(self, index):
+        '''Returns the declaration at the given index.'''
+        return self.declarations[index]
+
+    def __contains__(self, declaration):
+        '''Indicates whether the given declaration is present.'''
+        return declaration in self.declarations
+
+    def append(self, declaration):
+        '''
+        Appends a declaration to the end of the Ruleset.
+
+        Modifies the list of declarations *in place.*
+        '''
+        if not isinstance(declaration, Declaration):
+            raise ArgumentError, 'Expected a Declaration.'
+        self.declarations.append(declaration)
 
     def datum(self, serializer):
         return serialize.serialize_Ruleset(self, serializer)
@@ -194,9 +221,6 @@ class Page(SyntaxObject):
     A @page rule statement containing a list of declarations.
     
     The rule may have a pseudo-page specifer like :left or :right.
-
-    When iterating, yields each of its declarations in order of
-    their appearance.
     '''
     def __init__(self, declarations=None, pseudo_page=None):
         self.declarations = declarations or list()
@@ -210,25 +234,37 @@ class Page(SyntaxObject):
         return r
     
     def __iter__(self):
+        '''Iterates the list of declarations.'''
         return iter(self.declarations)
 
     def __len__(self):
+        '''Returns the number of declarations.'''
         return len(self.declarations)
 
-    def __getitem__(self, key):
-        return self.declarations[key]
+    def __getitem__(self, index):
+        '''Returns the declaration at the given index.'''
+        return self.declarations[index]
+ 
+    def __contains__(self, item):
+        '''Indicates whether the given declaration is present.'''
+        return item in self.declarations
+
+    def append(self, declaration):
+        '''
+        Appends a declaration to the end of the Page rule.
+
+        Modifies the Page rule *in place.*
+        '''
+        if not isinstance(declaration, Declaration):
+            raise ArgumentError, 'Expected a Declaration.'
+        self.declarations.append(declaration)
 
     def datum(self, serializer):
         return serialize.serialize_Page(self, serializer)
     
 
 class Media(SyntaxObject):
-    '''
-    An @media rule statement containing a list of rulesets.
-
-    When iterating, yields each of its rulesets in order of
-    their appearance.
-    '''
+    '''An @media rule statement containing a list of rulesets.'''
     def __init__(self, media_types, rulesets=None):
         self.media_types = media_types
         self.rulesets = rulesets or list()
@@ -241,13 +277,30 @@ class Media(SyntaxObject):
         return r 
     
     def __iter__(self):
+        '''Iterates the list of rulesets.'''
         return iter(self.rulesets)
 
     def __len__(self):
+        '''Returns the number of rulesets.'''
         return len(self.rulesets)
 
-    def __getitem__(self, key):
-        return self.rulesets[key]
+    def __getitem__(self, index):
+        '''Returns the ruleset at the given index.'''
+        return self.rulesets[index]
+
+    def __contains__(self, item):
+        '''Indicates whether the given ruleset is present.'''
+        return item in self.rulesets
+
+    def append(self, ruleset):
+        '''
+        Appends a Ruleset to the end of the Media rule.
+
+        Modifies the list of rulesets *in place.*
+        '''
+        if not isinstance(ruleset, Ruleset):
+            raise ArgumentError, 'Expected a Ruleset.'
+        self.ruleset.append(ruleset)
 
     def datum(self, serializer):
         return serialize.serialize_Media(self, serializer)
@@ -280,15 +333,12 @@ class Stylesheet(SyntaxObject):
     
     May have an optional list of import rules and an optional 
     character set specification.
-
-    When iterating, yields each of its rules, including @import 
-    and @charset rules, in order of their appearance.
     '''
     def __init__(self, statements, imports=None, charset=None):
         self.statements = statements
         self.imports = imports or list()
         self.charset = charset
-    
+
     def __repr__(self):
         r = 'Stylesheet(' + repr(self.statements)
         if self.imports:
@@ -299,6 +349,9 @@ class Stylesheet(SyntaxObject):
         return r
     
     def __iter__(self):
+        '''
+        Iterates the rules in the order of charset, imports, then other statements.
+        '''
         its = list()
         if self.charset:
             its.append([self.charset])
@@ -308,6 +361,7 @@ class Stylesheet(SyntaxObject):
         return itertools.chain(*its)
 
     def __len__(self):
+        ''' Returns the total number of rules.'''
         n = len(self.statements) + len(self.imports)
         if self.charset:
             n += 1
@@ -315,6 +369,29 @@ class Stylesheet(SyntaxObject):
 
     def __getitem__(self, key):
         return list(self)[key]
+
+    def __contains__(self, item):
+        '''
+        Indicates whether the given rule is in the top level of the stylesheet.
+        '''
+        return (item is not None and
+                (item is self.charset or
+                 item in self.imports or
+                 item in self.statements))
+    
+    def append(self, rule):
+        '''
+        Appends a rule to the end of the Stylesheet.
+
+        Modifies the Stylesheet *in place.*
+        '''
+        if isinstance(rule, Charset):
+            self.charset = rule
+        elif isinstance(rule, Import):
+            self.imports.append(rule)
+        else:
+            self.statements.append(rule)
+
 
     def datum(self, serializer):
         return serialize.serialize_Stylesheet(self, serializer)        
