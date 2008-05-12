@@ -46,10 +46,10 @@ class SelectorGroup(Selector):
     A group of several SimpleSelector instances that can share the same ruleset.
     '''
     def __init__(self, *selectors):
-        self.selectors = selectors
+        self.selectors = list(selectors)
 
     def __repr__(self):
-        return 'SelectorGroup(%r)' + ','.join([repr(x) for x in self.selectors]) + ')'
+        return 'SelectorGroup(' + ','.join([repr(x) for x in self.selectors]) + ')'
 
     def __iter__(self):
         '''Iterates the list of selectors.'''
@@ -77,4 +77,4 @@ class SelectorGroup(Selector):
         self.selectors.append(selector)
 
     def datum(self, serializer):
-        return serialize.serialize_SelectorGroup(self, serialier)
+        return serialize.serialize_SelectorGroup(self, serializer)
