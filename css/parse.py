@@ -19,7 +19,7 @@ def export(base, stylesheet, recursive=False):
         if isinstance(url, css.Uri):
             url = url.url
         url = uri.resolve(base, url)
-        export(base, parse(urlopen(url).read()))
+        export(base, parse(urlopen(url).read()), recursive)
 
     for rule in stylesheet:
         if recursive and isinstance(rule, css.Import):
