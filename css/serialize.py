@@ -47,37 +47,8 @@ def serialize(obj, printer=str):
         return serialize_Import(obj, printer)
     elif isinstance(obj, css.Stylesheet):
         return serialize_Stylesheet(obj, printer)
-    elif isinstance(obj, selector.SimpleSelector):
-        return serialize_SimpleSelector(obj, printer)
-    elif isinstance(obj, selector.SelectorGroup):
-        return serialize_SelectorGroup(obj, printer)
     else:
         return printer(obj)
-
-def serialize_SelectorGroup(obj, printer):
-    return printer(',').join([printer(x) for x in obj.selectors])
-
-def serialize_SimpleSelector(obj, printer):
-    nil = printer('')
-    s = nil
-    if printer(obj.element_name) == printer('*'):
-        if not (obj.ids or obj.classes or obj.attribs or obj.pseudo):
-            s += printer('*')
-    else:
-        s += printer(obj.element_name)
-    if obj.ids:
-        hash = printer('#')
-        s += nil.join((hash+printer(x) for x in obj.ids))
-    if obj.classes:
-        dot = printer('.')
-        s += nil.join((dot+printer(x) for x in obj.classes))
-    if obj.attribs:
-        lbrace, rbrace = printer('['), printer(']')
-        s += nil.join((lbrace+printer(x)+rbrace for x in obj.attribs))
-    if obj.pseudo:
-        colon = printer(':')
-        s += nil.join((colon+printer(x) for x in obj.pseudo))
-    return s
 
 def serialize_Hexcolor(obj, printer):
     return printer('#') + printer(obj.value)
