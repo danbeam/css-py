@@ -45,10 +45,16 @@ def serialize(obj, printer=str):
         return serialize_Media(obj, printer)
     elif isinstance(obj, css.Import):
         return serialize_Import(obj, printer)
+    elif isinstance(obj, css.GritInclude):
+        return serialize_GritInclude(obj, printer)
     elif isinstance(obj, css.KeyframesRule):
         return serialize_KeyframesRule(obj, printer)
     elif isinstance(obj, css.KeyframeBlock):
         return serialize_KeyframeBlock(obj, printer)
+    elif isinstance(obj, css.GritStatementList):
+        return serialize_GritStatementList(obj, printer)
+    elif isinstance(obj, css.GritDeclarationList):
+        return serialize_GritDeclarationList(obj, printer)
     elif isinstance(obj, css.Stylesheet):
         return serialize_Stylesheet(obj, printer)
     else:
@@ -111,6 +117,9 @@ def serialize_Import(obj, printer):
     s += printer(';')
     return s
 
+def serialize_GritInclude(obj, printer):
+    return printer('<include src=') + serialize(obj.source, printer) + printer('>')
+
 def serialize_KeyframesRule(obj, printer):
     s = printer('@keyframes ') + serialize(obj.name, printer) + printer('{')
     s += printer(' ').join((printer(b) for b in obj.blocks))
@@ -120,6 +129,20 @@ def serialize_KeyframesRule(obj, printer):
 def serialize_KeyframeBlock(obj, printer):
     s = serialize_Selector_group(obj.selectors, printer)
     s += serialize_Declaration_block(obj.rulesets, printer)
+    return s
+
+def serialize_GritStatementList(obj, printer):
+    s = printer('<if expr=') + printer(obj.expr) + printer('>')
+    if obj.statements:
+        s += printer(' ').join((serialize(x, printer) for x in obj.statements))
+    s += printer('</if>')
+    return s
+
+def serialize_GritDeclarationList(obj, printer):
+    s = printer('<if expr=') + printer(obj.expr) + printer('>')
+    if obj.declarations:
+        s += _serialize_Declarations(obj.declarations, printer)
+    s += printer('</if>')
     return s
 
 def serialize_Stylesheet(obj, printer):
@@ -137,5 +160,8 @@ def serialize_Pseudo(obj, printer):
 def serialize_Selector_group(selectors, printer):
     return printer(',').join((printer(x) for x in selectors))
 
+def _serialize_Declarations(declarations, printer):
+    return printer(';').join((serialize(x, printer) for x in declarations))
+
 def serialize_Declaration_block(declarations, printer):
-    return printer('{') + printer(';').join((serialize_Declaration(x, printer) for x in declarations)) + printer('}')
+    return printer('{') + _serialize_Declarations(declarations, printer) + printer('}')

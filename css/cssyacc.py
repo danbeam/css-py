@@ -83,8 +83,11 @@ class cssparser(object):
         '''
         import : IMPORT_SYM spaces import_source media_types spaces ';' spaces
                | IMPORT_SYM spaces import_source ';' spaces
+               | GRIT_INCLUDE spaces IDENT '=' STRING spaces GREATER spaces
         '''
-        if isinstance(p[4], list):
+        if len(p) == 9:
+            p[0] = css.GritInclude(p[5])
+        elif isinstance(p[4], list):
             p[0] = css.Import(p[3], p[4])
         else:
             p[0] = css.Import(p[3])
@@ -94,6 +97,37 @@ class cssparser(object):
         keyframes_rule : KEYFRAMES_SYM spaces IDENT spaces LBRACE spaces keyframes_blocks '}' spaces
         '''
         p[0] = css.KeyframesRule(p[3], p[7])
+
+    # Shared by both grit_statement_list and grit_declaration_list. Yields the grit expression as a STRING.
+    def p_grit_if_expr(self, p):
+        '''
+        grit_if_expr : GRIT_IF spaces GRIT_EXPR '=' STRING spaces GREATER
+        '''
+        p[0] = STRING_value(p[5])
+
+    def p_grit_statement_list(self, p):
+        '''
+        grit_statement_list : grit_if_expr spaces grit_statements spaces GRIT_IF_END spaces
+        '''
+        p[0] = css.GritStatementList(p[1], p[3])
+
+    def p_grit_statements(self, p):
+        '''
+        grit_statements : grit_statements grit_statement
+                        | grit_statement
+        '''
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1]
+            p[0].append(p[2])
+
+    def p_grit_statement(self, p):
+        '''
+        grit_statement : statement
+                       | import
+        '''
+        p[0] = p[1]
 
     def p_operator(self, p):
         '''
@@ -375,14 +409,10 @@ class cssparser(object):
 
     def p_statements(self, p):
         '''
-        statements : statements ruleset spaces_or_sgml_comments
-                   | statements media spaces_or_sgml_comments
-                   | statements page spaces_or_sgml_comments
-                   | statements keyframes_rule spaces_or_sgml_comments
-                   | ruleset spaces_or_sgml_comments
-                   | media spaces_or_sgml_comments
-                   | page spaces_or_sgml_comments
-                   | keyframes_rule spaces_or_sgml_comments
+        statements : statements statement
+                   | statements grit_statement_list
+                   | statement
+                   | grit_statement_list
                    | empty
         '''
         if not p[1]:
@@ -392,6 +422,15 @@ class cssparser(object):
             p[0].append(p[2])
         else:
             p[0] = [p[1]]
+
+    def p_statement(self, p):
+        '''
+        statement : ruleset spaces_or_sgml_comments
+                  | media spaces_or_sgml_comments
+                  | page spaces_or_sgml_comments
+                  | keyframes_rule spaces_or_sgml_comments
+        '''
+        p[0] = p[1]
 
     def p_import_source(self, p):
         '''
@@ -481,7 +520,9 @@ class cssparser(object):
     def p_block_declarations(self, p):
         '''
         block_declarations : block_declarations ';' spaces declaration
+                           | block_declarations ';' spaces grit_declaration_list
                            | declaration
+                           | grit_declaration_list
         '''
         if len(p) == 2:
             p[0] = []
@@ -491,6 +532,23 @@ class cssparser(object):
             p[0] = p[1]
             if p[4]:
                 p[0].append(p[4])
+
+    def p_grit_declaration_list(self, p):
+        '''
+        grit_declaration_list : grit_if_expr spaces grit_declarations spaces GRIT_IF_END spaces
+        '''
+        p[0] = css.GritDeclarationList(p[1], p[3])
+
+    def p_grit_declarations(self, p):
+        '''
+        grit_declarations : grit_declarations ';' spaces declaration
+                          | declaration
+        '''
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1]
+            p[0].append(p[4])
 
     def p_attrib_match(self, p):
         '''

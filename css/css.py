@@ -338,6 +338,20 @@ class Import(SyntaxObject):
         return serialize.serialize_Import(self, serializer)
 
 
+class GritInclude(SyntaxObject):
+    '''
+    A Grit <include> directive.
+    '''
+    def __init__(self, source):
+        self.source = source
+
+    def __repr__(self):
+        return 'GritInclude(' + repr(self.source) + ')'
+
+    def datum(self, serializer):
+        return serialize.serialize_GritInclude(self, serializer)
+
+
 class KeyframesRule(SyntaxObject):
     '''
     A @keyframes rule statement containing a list of KeyframeSelector objects.
@@ -408,6 +422,78 @@ class KeyframeBlock(SyntaxObject):
 
     def datum(self, serializer):
         return serialize.serialize_KeyframeBlock(self, serializer)
+
+
+class GritStatementList(SyntaxObject):
+    '''
+    A Grit <if></if> conditional around a list of statements.
+    '''
+    def __init__(self, expr, statements=None):
+        self.expr = expr
+        self.statements = statements or list()
+
+    def __repr__(self):
+        r = 'GritStatementList(' + repr(self.expr)
+        if self.statements:
+            r + ', statements=' + repr(self.statements)
+        r += ')'
+        return r
+
+    def __iter__(self):
+        return iter(self.statements)
+
+    def __len__(self):
+        return len(self.statements)
+
+    def __getitem__(self, index):
+        return self.statements[index]
+
+    def __contains__(self, item):
+        return item in self.statements
+
+    def append(self, item):
+        if not isinstance(item, (Page, KeyframesRule, Media, Ruleset)):
+            raise ArgumentError, 'Expected a statement.'
+        self.statements.append(item)
+
+    def datum(self, serializer):
+        return serialize.serialize_GritStatementList(self, serializer)
+
+
+class GritDeclarationList(SyntaxObject):
+    '''
+    A Grit <if></if> conditional around a list of declarations.
+    '''
+    def __init__(self, expr, declarations=None):
+        self.expr = expr
+        self.declarations = declarations or list()
+
+    def __repr__(self):
+        r = 'GritDeclarationList(' + repr(self.expr)
+        if self.declarations:
+            r + ', declarations=' + repr(self.declarations)
+        r += ')'
+        return r
+
+    def __iter__(self):
+        return iter(self.declarations)
+
+    def __len__(self):
+        return len(self.declarations)
+
+    def __getitem__(self, index):
+        return self.declarations[index]
+
+    def __contains__(self, item):
+        return item in self.declarations
+
+    def append(self, item):
+        if not isinstance(item, Declaration):
+            raise ArgumentError, 'Expected a Declaration.'
+        self.declarations.append(item)
+
+    def datum(self, serializer):
+        return serialize.serialize_GritDeclarationList(self, serializer)
 
 
 class Stylesheet(SyntaxObject):

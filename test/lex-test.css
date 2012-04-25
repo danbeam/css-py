@@ -2,17 +2,23 @@
 
 @import url("blah.css");
 
+<include src="blee.css">
+
 a:hover {
   background: blue !important;
 }
 
+<if expr="is_macosx">
 @page {
   blah: -webkit-func(something);
 }
+</if>
 
 @media screen {
   a[d=e]:not(b) ~ c > e[f|=g][h^=i][j$=k][l*=j][k~='l'] + m {
+<if expr="is_posix">
     -webkit-rule: #abc #012345 rgb(1,2,3);
+</if>
   }
 }
 

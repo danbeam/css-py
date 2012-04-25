@@ -122,6 +122,10 @@ class csslexer(object):
         'FROM_SYM',
         'FUNCTION',
         'GREATER',
+        'GRIT_EXPR',
+        'GRIT_IF',
+        'GRIT_IF_END',
+        'GRIT_INCLUDE',
         'HASH',
         'IDENT',
         'IMPORTANT_SYM',
@@ -209,6 +213,11 @@ class csslexer(object):
     t_IMPORTANT_SYM  = ur'\!' + \
         r_star(r_or(w,comment)) + \
         I + M + P + O + R + T + A + N + T
+
+    t_GRIT_EXPR      = E + X + P + R
+    t_GRIT_IF        = ur'\<' + I + F
+    t_GRIT_IF_END    = ur'\<' + r_star(s) + '\/' + r_star(s) + I + F + r_star(s) + t_GREATER
+    t_GRIT_INCLUDE   = ur'\<' + I + N + C + L + U + D + E
 
     @_lex.TOKEN(num + E + M)
     def t_EMS(self, t):

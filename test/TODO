@@ -13,6 +13,10 @@ $ python ./css/csslex.py ./test/lex-test.css | cut -d',' -f1 | cut -d '(' -f2 | 
       1 FROM_SYM
       2 FUNCTION
       1 GREATER
+      1 GRIT_EXPR
+      1 GRIT_IF
+      1 GRIT_IF_END
+      1 GRIT_INCLUDE
       2 HASH
      26 IDENT
       1 IMPORTANT_SYM
