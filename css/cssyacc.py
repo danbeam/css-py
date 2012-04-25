@@ -65,13 +65,13 @@ class cssparser(object):
 
     def p_page(self, p):
         '''
-        page : PAGE_SYM spaces pseudo_page spaces LBRACE block_declarations '}' spaces
-             | PAGE_SYM spaces LBRACE block_declarations '}' spaces
+        page : PAGE_SYM spaces pseudo_page spaces LBRACE spaces block_declarations '}' spaces
+             | PAGE_SYM spaces LBRACE spaces block_declarations '}' spaces
         '''
         if isinstance(p[3], css.Ident):
-            p[0] = css.Page(p[6], p[3])
+            p[0] = css.Page(p[7], p[3])
         else:
-            p[0] = css.Page(p[4])
+            p[0] = css.Page(p[5])
 
     def p_pseudo_page(self, p):
         '''
