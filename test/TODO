@@ -1,0 +1,38 @@
+Make this a little more automatic, at the moment you should probably see
+something like:
+
+$ python ./css/csslex.py ./test/lex-test.css | cut -d',' -f1 | cut -d '(' -f2 | grep '^[A-Z]' | sort | uniq -c
+
+      3 ANGLE
+      1 CHARSET_SYM
+      2 COMMA
+      1 DASHMATCH
+      1 EMS
+      1 EXS
+      2 FREQ
+      1 FROM_SYM
+      2 FUNCTION
+      1 GREATER
+      2 HASH
+     26 IDENT
+      1 IMPORTANT_SYM
+      1 IMPORT_SYM
+      1 INCLUDES
+      1 KEYFRAMES_SYM
+      9 LBRACE
+      6 LENGTH
+      1 MEDIA_SYM
+      1 NOT
+      3 NUMBER
+      1 PAGE_SYM
+      2 PERCENTAGE
+      1 PLUS
+      1 PREFIXMATCH
+     51 S
+      2 STRING
+      1 SUBSTRINGMATCH
+      1 SUFFIXMATCH
+      1 TILDE
+      2 TIME
+      1 TO_SYM
+      1 URI

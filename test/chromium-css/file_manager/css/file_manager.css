@@ -1,0 +1,1159 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+html.col-resize * {
+  cursor: col-resize !important;
+}
+
+/* Outer frame of the dialog. */
+body {
+   -webkit-box-flex: 1;
+   -webkit-box-orient: vertical;
+   -webkit-transition: opacity 70ms linear;
+   -webkit-user-select: none;
+   display: -webkit-box;
+   height: 100%;
+   margin: 0;
+   opacity: 0;
+   padding: 0;
+   position: absolute;
+   width: 100%;
+}
+
+button,
+input[type='button'],
+input[type='submit'] {
+  -webkit-border-radius: 2px;
+  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  -webkit-user-select: none;
+  background: -webkit-linear-gradient(#fafafa, #f4f4f4 40%, #e5e5e5);
+  border: 1px solid #aaa;
+  color: #444;
+  font-size: inherit;
+  margin-bottom: 0;
+  min-width: 4em;
+  padding: 3px 12px 3px 12px;
+}
+
+button:hover,
+input[type='button']:hover,
+input[type='submit']:hover {
+  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  background: #ebebeb -webkit-linear-gradient(#fefefe, #f8f8f8 40%, #e9e9e9);
+  border-color: #999;
+  color: #222;
+}
+
+button:active,
+input[type='button']:active,
+input[type='submit']:active {
+  -webkit-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  background: #ebebeb -webkit-linear-gradient(#f4f4f4, #efefef 40%, #dcdcdc);
+  color: #333;
+}
+
+button[disabled],
+input[type='button'][disabled],
+input[type='submit'][disabled],
+button[disabled]:hover,
+input[type='button'][disabled]:hover,
+input[type='submit'][disabled]:hover {
+  -webkit-box-shadow: none;
+  background: -webkit-linear-gradient(#fafafa, #f4f4f4 40%, #e5e5e5);
+  border-color: #aaa;
+  color: #888;
+}
+
+/* Drop opacity of selected rows to give a visual feedback on copy/cut
+ * operation. */
+.blink {
+  opacity: 0.8;
+}
+
+.butter-bar {
+  -webkit-box-align: end;
+  -webkit-box-orient: horizontal;
+  -webkit-transform: translate3d(0, 1px, 0);
+  -webkit-transition-duration: 300ms;
+  -webkit-transition-property: opacity, -webkit-transform;
+  background-color: rgba(95, 95, 95, 0.17);
+  color: #222;
+  display: -webkit-box;
+  padding-left: 1em;
+  padding-right: 1em;
+  padding-top: 2px;
+  position: absolute;
+  top: 0;
+}
+
+.butter-bar.before-show {
+  -webkit-transform: translate3d(0, -30px, 0);
+  opacity: 0;
+}
+
+.butter-bar.after-show {
+  -webkit-transform: translate3d(0, 50px, 0);
+  opacity: 0;
+}
+
+.butter-bar .content {
+  padding-bottom: 8px;
+  padding-right: 5px;
+}
+
+.hide-in-butter {
+  display: none;
+}
+
+.butter-bar .actions {
+  -webkit-box-orient: horizontal;
+  -webkit-box-pack: end;
+  display: -webkit-box;
+}
+
+.butter-bar .actions a {
+  background: center center no-repeat;
+  background-image: url('../images/close_bar.png');
+  display: inline-block;
+  height: 12px;
+  padding: 4px;
+  width: 12px;
+}
+
+.butter-bar.error {
+  background-color: rgba(221, 75, 57, 0.2);
+  border: 1px solid rgba(221, 75, 57, 0.5);
+  border-radius: 2px;
+  padding: 2px 1em;
+}
+
+.progress-bar {
+  border: 1px solid #999;
+  margin-top: 3px;
+  padding: 1px;
+  width: 320px;
+}
+
+.progress-track {
+  -webkit-animation-duration: 800ms;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-name: bg;
+  -webkit-animation-timing-function: linear;
+  background-color: #ccc;
+  background-image: -webkit-linear-gradient(315deg, transparent,
+      transparent 33%, rgba(0, 0, 0, 0.12) 33%, rgba(0, 0, 0, 0.12) 66%,
+      transparent 66%, transparent);
+  background-position: 0 0;
+  background-repeat: repeat-x;
+  background-size: 16px 8px;
+  height: 5px;
+}
+
+@-webkit-keyframes bg {
+  0% { background-position: 0 0; }
+  100% { background-position: -16px 0; }
+}
+
+/* The top title of the dialog. */
+.dialog-title {
+  -webkit-box-sizing: border-box;
+  -webkit-padding-start: 15px;
+  background-image: -webkit-linear-gradient(top, #fff, #f6f6f6);
+  border-bottom: 1px rgb(214, 217, 227) solid;
+  color: rgb(66, 80, 108);
+  font-size: 15px;
+  font-weight: bold;
+  height: 32px;
+  padding-bottom: 8px;
+  padding-top: 8px;
+}
+
+/* Main part of the dialog between header and footer. */
+.dialog-container {
+  -webkit-box-align: stretch;
+  -webkit-box-flex: 1;
+  -webkit-box-orient: horizontal;
+  background-color: white;  /* Makes #drag-image-container invisible. */
+  display: -webkit-box;
+  overflow: hidden;
+  position: relative;
+}
+
+/* List/grid and preview are inside this container. */
+.dialog-main {
+  -webkit-box-align: stretch;
+  -webkit-box-flex: 1;
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+}
+
+/* Roots list at the left. */
+.dialog-sidebar {
+  -webkit-box-flex: 0;
+  background-color: #e6e6e6;
+  overflow: hidden;
+  position: relative;
+  width: 168px;
+}
+
+/* A vertical splitter between the roots list and the file list. It is actually
+  a transparent area centered on the roots list right border.*/
+div.sidebar-splitter {
+  -webkit-box-flex: 0;
+  cursor: col-resize;
+  margin-left: -4px;  /* +1px to accomodate the roots list border */
+  margin-right: -3px;
+  position: relative;
+  width: 7px;
+  z-index: 2;
+}
+
+/* Roots list at the left. */
+list.roots-list {
+  border-right: 1px solid #d2d2d2;
+}
+
+list.roots-list > * {
+  background-color: #e6e6e6;
+  border: none;
+  border-radius: 0;
+  height: 39px;
+  margin: 0;
+  padding: 0 5px;
+}
+
+list.roots-list > [lead][selected],
+list.roots-list > [lead],
+list.roots-list > [selected],
+list.roots-list > [anchor] {
+  background-color: rgb(204, 219, 243);
+  background-image: none;
+  border-bottom: 1px solid rgb(195, 210, 233);
+  border-top: 1px solid rgb(195, 210, 233);
+  height: 37px;
+}
+
+list.roots-list > [lead]:hover,
+list.roots-list > [lead][selected]:hover,
+list.roots-list > [selected]:hover,
+list.roots-list > [anchor]:hover {
+  background-color: rgb(193, 211, 236) !important;
+  border-bottom: 1px solid transparent !important;
+  border-top: 1px solid transparent !important;
+  height: 37px !important;
+}
+
+list.roots-list li.root-item {
+  -webkit-box-align: center;
+  display: -webkit-box;
+  padding-left: 11px;
+}
+
+li.root-item > .root-label {
+  -webkit-box-flex: 1;
+  margin-right: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.root-label {
+  -webkit-padding-start: 38px;
+  background-position: left center;
+  background-repeat: no-repeat;
+}
+
+.root-label[icon=downloads] {
+  background-image: url('../images/downloads_28x28.png');
+}
+
+.root-label[icon=gdata] {
+  background-image: url('../images/gdata_28x28.png');
+}
+
+.root-label[icon=archive] {
+  background-image: url('../images/archive_28x28.png');
+}
+
+.root-label[icon=removable],
+.root-label[icon=unreadable] {
+  background-image: url('../images/usb_source_28x28.png');
+  background-position: 0 -3px;
+}
+
+div.root-eject {
+  -webkit-transition: opacity 70ms linear;
+  background-image: url('../images/eject.png');
+  background-position: center center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  height: 20px;
+  margin-right: 6px;
+  opacity: 0;
+  width: 20px;
+}
+
+div.root-eject:hover {
+  opacity: 1;
+}
+
+.root-item[selected] > div.root-eject:not(:hover),
+.root-item:hover > div.root-eject:not(:hover) {
+  opacity: 0.7;
+}
+
+.root-item[disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Breadcrumbs and things under the title but above the list view. */
+.dialog-header {
+  -webkit-box-align: center;
+  -webkit-box-orient: horizontal;
+  -webkit-transition: all 180ms ease;
+  display: -webkit-box;
+  margin-bottom: 7px;
+  margin-left: 0;
+  margin-right: 10px;
+  margin-top: 5px;
+}
+
+/* Container for the detail and thumbnail list views. */
+.dialog-body {
+  -webkit-box-flex: 1;
+  -webkit-box-orient: vertical;
+  -webkit-transition: all 180ms ease;
+  border-top: 1px solid #d4d4d4;
+  display: -webkit-box;
+  overflow: hidden;
+}
+
+/* Container for the ok/cancel buttons. */
+.dialog-footer {
+  -webkit-box-align: center;
+  -webkit-box-orient: horizontal;
+  border-top: 1px solid #d2d2d2;
+  display: -webkit-box;
+  padding: 10px 17px 14px 15px;
+}
+
+.dialog-footer:not([progress]) .progress-bar,
+.dialog-footer:not([progress]) .preparing-label {
+  display: none;
+}
+
+.dialog-footer[progress] .ok,
+.dialog-footer[progress] .filename-label,
+.dialog-footer[progress] .filename-input {
+  display: none;
+}
+
+.dialog-footer .progress-bar {
+  -webkit-margin-end: 20px;
+  -webkit-margin-start: 20px;
+}
+
+/* The container for breadcrumb elements. */
+.breadcrumbs {
+  -webkit-box-align: center;
+  -webkit-box-flex: 1;
+  -webkit-box-orient: horizontal;
+  -webkit-margin-end: 5px;
+  -webkit-margin-start: 10px;
+  display: -webkit-box;
+  line-height: 20px;
+  overflow: hidden;
+  padding-top: 1px;
+}
+
+.breadcrumbs > [collapsed]:before {
+  content: '...';
+}
+
+.breadcrumbs > [collapsed] {
+  width: 1em;
+}
+
+/* A single directory name in the list of path breadcrumbs. */
+.breadcrumb-path {
+  color: rgb(38, 86, 146);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The final breadcrumb, representing the current directory. */
+.breadcrumb-last {
+  color: black;
+  cursor: default;
+}
+
+/* The > arrow between breadcrumbs. */
+
+.breadcrumbs .separator {
+  background-image: url('../images/breadcrumb-separator.png');
+  background-position: center center;
+  background-repeat: no-repeat;
+  height: 10px;
+  overflow: hidden;
+  width: 25px;
+}
+
+.dialog-header div[role=button] {
+  -webkit-transition: border-color 130ms linear;
+  background-color: transparent;
+  background-position: center center;
+  background-repeat: no-repeat;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  height: 29px;
+  width: 29px;
+}
+
+.dialog-header div[role=button]:focus {
+  -webkit-transition: border-color 200ms;
+  border-color: rgb(77, 144, 254);
+  outline: none;
+}
+
+.dialog-header div[role=button][disabled],
+.dialog-header div[role=button]:hover,
+.dialog-header div[role=button]:active {
+  border-color: #ddd;
+}
+
+.dialog-header div[role=button][disabled] {
+  background-color: #f1f1f1;
+}
+
+#search-box {
+  background: url('../images/icon_search.png') no-repeat scroll 3px 3px;
+  border: 1px solid #BBB;
+  border-radius: 2px;
+  display: -webkit-box;
+  height: 20px;
+  margin-right: 10px;
+  padding-left: 22px;
+}
+
+/* button:hover and button[disabled]:hover rules must be override by placing
+ * the following four rules after them.
+ */
+div.detail-view {
+  background-image: url('../images/icon_list_view.png');
+}
+
+div.thumbnail-view {
+  background-image: url('../images/icon_thumb_view.png');
+  margin-left: -1px;
+}
+
+
+button.settings {
+  display: none;
+  /* Temporary solution not to uglify settings button */
+  height: 30px;
+  margin-left: 8px;
+  width: 57px;
+}
+
+[gdata] button.settings {
+  background-image: url('../images/settings_button.png');
+  display: block;
+}
+
+[gdata] button.settings:active {
+  background-image: url('../images/settings_button_pressed.png');
+}
+
+.filelist-panel {
+  -webkit-box-flex: 1;
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+}
+
+.list-container {
+  -webkit-box-flex: 1;
+  display: -webkit-box;
+  position: relative;
+}
+
+.spinner {
+  background-image: url(../images/spinner.svg);
+  background-size: 100%;
+  height: 22px;
+  left: 50%;
+  margin-left: -11px;
+  margin-top: -11px;
+  opacity: 0.5;
+  position: absolute;
+  top: 50%;
+  width: 22px;
+}
+
+.downloads-warning {
+  -webkit-box-align: center;
+  -webkit-box-orient: horizontal;
+  -webkit-transition: height 70ms linear;
+  background-color: #f0f0f0;
+  color: #666;
+  display: -webkit-box;
+  font-size: 13px;
+  height: 57px;
+  overflow: hidden;
+}
+
+.downloads-warning[hidden] {
+  height: 0;
+}
+
+.downloads-warning img {
+  display: -webkit-box;
+  padding: 15px;
+}
+
+.downloads-warning div {
+  -webkit-box-flex: 1;
+  display: -webkit-box;
+}
+
+/* The cr.ui.Grid representing the detailed file list. */
+.thumbnail-grid {
+  overflow-y: auto;
+  width: 100%;
+}
+
+/* An item in the thumbnail view. */
+.thumbnail-item {
+  height: 145px;
+  margin-left: 5px;
+  margin-right: 5px;  
+  margin-top: 10px;
+  text-align: center;
+  width: 120px;
+}
+
+.thumbnail-item > input.common[type='checkbox'] {
+  left: 0;
+  position: absolute;
+  top: 0;
+}
+
+/* When changing these properties please preserve these conditions:
+   1. width == height (so that the rotated thumbnail does not look off-center)
+   2. width % 8 == 0 (to minimize rounding errors in the centering code) */
+div.img-container {
+  height: 112px;
+  margin: 4px;
+  overflow: hidden;
+  position: relative;
+  width: 112px;
+}
+
+div.img-container > img {
+  -webkit-user-drag: none;
+  position: absolute;
+}
+
+.list-container list > *,
+.list-container grid > * {
+  background-image: none;
+  border-radius: 0;
+  line-height: 30px;
+}
+
+.list-container list > [selected],
+.list-container grid > [selected] {
+  background-color: rgb(203, 219, 241);
+  border-color: rgb(224, 233, 247);
+}
+
+.list-container list > .accepts[selected],
+.list-container list > [selected]:hover,
+.list-container grid > [selected]:hover {
+  background-color: rgb(193, 211, 236);
+}
+
+.list-container list > .accepts,
+.list-container list > :hover,
+.list-container grid > :hover {
+  background-color: rgb(242, 246, 250);
+  border-color: rgb(242, 246, 250);
+}
+
+.list-container.nohover list > :not([selected]):hover,
+.list-container.nohover grid > :not([selected]):hover {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.table-row-cell .filename-label,
+.thumbnail-item .filename-label,
+/* Show ellipsis in cells. The name column has different structure and overrides
+   this rule. */
+.table-row-cell > div {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Text box used for renaming in the detail list. */
+.table-row-cell input.rename {
+  -webkit-margin-start: -3px;
+  line-height: 20px;
+}
+
+/* Elements that need to be LTR even in an RTL context, but should align
+ * left. Display size in Hebrew is such a case.
+ */
+html[dir='rtl'] .align-end-weakrtl {
+  direction: ltr;
+  text-align: left;
+}
+
+input.rename {
+  font: inherit;
+  line-height: 1;
+  text-align: inherit;
+}
+
+.table-row-cell .filename-label,
+.table-row-cell input.rename {
+  -webkit-box-flex: 1;
+}
+
+[renaming] > .filename-label {
+  display: none;
+}
+
+/* Text box used for renaming in the thumbnail list. */
+.thumbnail-grid input.rename {
+  -webkit-box-sizing: border-box;
+  -webkit-margin-start: -1px;
+  height: 20px;
+  width: 114px;
+}
+
+/* The cr.ui.Table representing the detailed file list. */
+.detail-table {
+  border: 0;
+  width: 100%;
+}
+
+/* Bottom pane describing current selection. */
+.preview-panel {
+  -webkit-box-align: center;
+  -webkit-box-orient: horizontal;
+  -webkit-transform: translate(0, 0);
+  background-color: #F0F0F0;
+  display: -webkit-box;
+  height: 61px;
+  opacity: 1;
+  padding: 0 14px;
+  position: relative;
+  z-index: 3;
+}
+
+.preview-panel[visibility=hiding] {
+  /* Using all seems to cause preview panel and checkbox flicking issue. */
+  -webkit-transform: translate(0, 5px);
+  -webkit-transition: opacity 220ms ease;
+   opacity: 0;
+}
+
+.preview-panel[visibility=hidden] {
+  display: none;
+  opacity: 0;
+}
+
+.preview-thumbnails {
+  -webkit-box-orient: horizontal;
+  display: -webkit-box;
+  padding-left: 39px;
+}
+
+.preview-thumbnails > div {
+  height: 45px;
+  margin: 0 0 0 -39px;  /* Show 7 pixels of the overlapped image */
+  position: relative;
+  width: 45px;
+}
+
+.preview-thumbnails > div > div.img-container {
+  height: 45px;
+  margin: 0;
+  width: 45px;
+}
+
+.preview-thumbnails > div {
+  -webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  background-color: #F2F2F2;
+  border: 1px solid #fff;
+}
+
+.preview-thumbnails > div > div.popup {
+  -webkit-transform: translate(0, 3px) scale(0.95);
+  -webkit-transition: all 180ms ease-in;
+  -webkit-transition-delay: 300ms;
+  background-color: #F2F2F2;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #F0F0F0,
+              0 0 0 2px #D0D0D0,
+              2px 2px 6px rgba(0, 0, 0, 0.2);
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 1;
+}
+
+.preview-thumbnails > div:hover > div.popup {
+  -webkit-transform: translate(0, 0) scale(1.0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* cr.ui.Table has a black focus border by default, which we don't want. */
+.detail-table:focus {
+  border: 0;
+}
+
+/* Table splitter element */
+.table-header-splitter {
+  -webkit-border-start: 1px #d4d4d4 solid;
+  background-color: inherit;
+  height: 27px;
+}
+
+/* Container for a table header. */
+.table-header {
+  -webkit-box-sizing: border-box;
+  background-color: #f5f5f5;
+  border-bottom: 1px #d2d2d2 solid;
+  height: 27px;
+}
+
+.table-header-sort-image-desc::after {
+  -webkit-padding-start: 13px;
+  background-image: url(../images/sort_desc.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  color: #888;
+  content: '\00a0';
+  position: relative;
+  top: 0;
+}
+
+.table-header-sort-image-asc::after {
+  -webkit-padding-start: 13px;
+  background-image: url(../images/sort_asc.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  color: #888;
+  content: '\00a0';
+  position: relative;
+  top: 0;
+}
+
+
+.preview-container .table-header {
+  border-radius: 0 4px 0 0;
+}
+
+/* Text label in a table header. */
+.table-header-label {
+  margin: 5px 10px 0 10px;
+}
+
+.table-row-cell > * {
+  -webkit-box-align: center;
+  -webkit-box-flex: 1;
+  -webkit-box-orient: horizontal;
+  margin: 0;
+  padding: 0 10px;
+}
+
+.table-row-cell > .detail-name {
+  display: -webkit-box;
+}
+
+.file-checkbox {
+  -webkit-margin-end: 0;
+  -webkit-margin-start: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.file-checkbox,
+.pin {
+  opacity: 0.3;
+}
+
+#select-all-checkbox {
+  -webkit-margin-end: 10px;
+  -webkit-margin-start: 0;
+  margin-bottom: 0;
+  margin-top: 0;
+  /* 1px below text */
+  position: relative;
+  top: 1px;
+}
+
+li.thumbnail-item .file-checkbox {
+  -webkit-margin-start: 7px;
+  margin-top: 6px;
+  opacity: 0;
+}
+
+li.table-row:hover .file-checkbox,
+li.table-row:hover .pin,
+li.thumbnail-item:hover .file-checkbox {
+  opacity: 0.5;
+}
+
+.file-checkbox:hover,
+.pin:hover,
+li.table-row[selected] .file-checkbox,
+li.table-row[selected] .pin,
+li.table-row .pin:checked,
+li.thumbnail-item[selected] .file-checkbox {
+  opacity: 1 !important;
+}
+
+li.table-row {
+  line-height: 38px;
+  padding-bottom: 1px;
+  padding-top: 1px;
+}
+
+/* The icon in the name column. */
+.detail-icon {
+  background-image: url(../images/filetype_generic.png);
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 24px;
+  width: 24px;
+}
+
+/* Icon for files in the detail list. */
+.detail-icon[iconType='archive'] {
+  background-image: url(../images/filetype_archive.png);
+}
+
+.detail-icon[iconType='audio'] {
+  background-image: url(../images/filetype_audio.png);
+}
+
+.detail-icon[iconType='device'] {
+  background-image: url(../images/filetype_device.png);
+}
+
+.detail-icon[iconType='excel'] {
+  background-image: url(../images/filetype_excel.png);
+}
+
+.detail-icon[iconType='folder'] {
+  background-image: url(../images/filetype_folder.png);
+}
+
+.detail-icon[iconType='html'] {
+  background-image: url(../images/filetype_html.png);
+}
+
+.detail-icon[iconType='image'] {
+  background-image: url(../images/filetype_image.png);
+}
+
+.detail-icon[iconType='pdf'] {
+  background-image: url(../images/filetype_pdf.png);
+}
+
+.detail-icon[iconType='ppt'] {
+  background-image: url(../images/filetype_ppt.png);
+}
+
+.detail-icon[iconType='text'] {
+  background-image: url(../images/filetype_text.png);
+}
+
+.detail-icon[iconType='unreadable'] {
+  background-image: url(../images/filetype_unreadable_device.png);
+}
+
+.detail-icon[iconType='video'] {
+  background-image: url(../images/filetype_video.png);
+}
+
+.detail-icon[iconType='word'] {
+  background-image: url(../images/filetype_word.png);
+}
+
+.detail-icon[iconType='gdoc'] {
+  background-image: url(../images/filetype_gdoc.png);
+}
+
+.detail-icon[iconType='gsheet'] {
+  background-image: url(../images/filetype_gsheet.png);
+}
+
+.detail-icon[iconType='gslides'] {
+  background-image: url(../images/filetype_gslides.png);
+}
+
+.detail-icon[iconType='gdraw'] {
+  background-image: url(../images/filetype_gdraw.png);
+}
+
+.detail-icon[iconType='gtable'] {
+  background-image: url(../images/filetype_gtable.png);
+}
+
+.metadata-item {
+  -webkit-box-flex: 1;
+  -webkit-box-orient: horizontal;
+  -webkit-padding-start: 8px;
+  display: -webkit-box;
+}
+
+.metadata-label {
+  -webkit-margin-end: 6px;
+}
+
+.preview-panel .spacer {
+  -webkit-box-flex: 1;
+}
+
+.delete-button {
+  -webkit-margin-end: 8px;
+  -webkit-margin-start: 8px;
+}
+
+.delete-button[disabled] {
+  /* Copied colors from cr-button:disabled */
+  border-color: rgba(0, 0, 0, 0.2);
+  color: #999;
+  pointer-events: none;
+}
+
+.task-item {
+  -webkit-box-align: center;
+  -webkit-box-orient: horizontal;
+  display: -webkit-box;
+  padding: 5px 10px 4px;
+  text-align: left;
+}
+
+.task-item > div {
+  overflow: hidden;
+  padding-right: 5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-item > img {
+  -webkit-margin-end: 5px;
+}
+
+/* The selection summary text at the bottom of the preview pane. */
+.preview-summary {
+  -webkit-box-flex: 1;
+  color: #666;
+  overflow: hidden;
+  padding: 5px;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.dialog-footer .filename-label {
+  -webkit-box-orient: horizontal;
+  background-color: white;
+  color: #333;
+  display: -webkit-box;
+  padding-right: 4px;
+}
+
+.detail-name > * {
+  -webkit-box-align: center;
+  display: -webkit-box;
+}
+
+/* Overriding input.common[type='checkbox'] rule in common.css. */
+.detail-name > input.common[type='checkbox'] {
+  -webkit-margin-end: 3px;
+}
+
+list .detail-name > .file-checkbox::before,
+.pin::before {
+  /* Invisible area that reacts on mouse events. */
+  content: '';
+  display: -webkit-box;
+  height: 38px;
+  left: -4px;
+  position: absolute;
+  top: -14px;
+  width: 17px;
+}
+
+.filename-input {
+  -webkit-border-radius: 2px;
+  -webkit-box-flex: 1;
+  -webkit-box-orient: horizontal;
+  display: -webkit-box;
+}
+
+/* A horizontal spring. */
+.horizontal-spacer {
+  -webkit-box-flex: 1;
+  -webkit-box-orient: horizontal;
+  display: -webkit-box;
+}
+
+/* A vertical spring. */
+.vertical-spacer {
+  -webkit-box-flex: 1;
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+}
+
+/* GData-specfic styles */
+
+[gdata][offline] .table-row:not(.gdata-present),
+[gdata][offline] .thumbnail-item:not(.gdata-present) {
+  color: #808080;
+}
+
+[gdata][offline] .table-row:not(.gdata-present) .detail-icon,
+[gdata][offline] .thumbnail-item:not(.gdata-present) .img-container {
+  opacity: 0.3;
+}
+
+/* Overlay pane covering the entire file manager window (e.g. image editor)*/
+.overlay-pane {
+  border: none;
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 100;
+}
+
+/* Invisible container for elements representing files while dragging. */
+#drag-image-container {
+  -webkit-box-orient: horizontal;
+  display: -webkit-box;
+  /* Only nodes in visible viewport will be rendered. */
+  left: 0;
+  padding-left: 100px;
+  position: fixed;
+  top: 0;
+  z-index: -1;  /* below .dialog-container */
+}
+
+#drag-image-container > * {
+  background-color: rgb(203, 219, 241);
+  border: 1px solid white; /* transparent white */
+  cursor: default;
+  display: inline-block;
+  line-height: 20px;
+  margin: 0 0 0 -100px;
+  overflow: hidden;
+  padding: 0 3px;
+  position: relative; /* to allow overlap */
+  text-overflow: ellipsis;
+  white-space: pre;
+}
+
+#drag-image-container > li input[type=checkbox] {
+  display: none;
+}
+
+menu.file-context-menu {
+  z-index: 4;
+}
+
+input.common.pin[type='checkbox']:checked::after {
+  background-image: url('../images/pin.png');
+  background-position: 4px 0;
+}
+
+div.offline {
+  -webkit-box-pack: center;
+  display: -webkit-box;
+}
+
+div.offline > * {
+  -webkit-box-align: center;
+  display: -webkit-box;
+}
+
+div.shade {
+  /* -webkit-transition: opacity 1000ms linear; */
+  background-color: rgba(255, 255, 255, 0.8);
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+div.shade[fadein] {
+  opacity: 1;
+}
+
+/* Message panel for unmounted GData */
+.dialog-container:not([unmounted]) .dialog-body > div.unmounted-panel,
+.dialog-container[unmounted] .dialog-body > div:not(.unmounted-panel) {
+  display: none;
+}
+
+div.unmounted-panel {
+  padding-left: 50px;
+  padding-top: 20px;
+}
+
+div.unmounted-panel > * {
+  height: 22px;
+  margin-bottom: 10px;
+}
+
+div.unmounted-panel > div {
+  -webkit-box-align: center;
+  -webkit-box-orient: horizontal;
+  -webkit-box-pack: start;
+  display: -webkit-box;
+}
+
+.unmounted-panel > .gdata.loading {
+  position: relative;
+}
+
+.unmounted-panel > .gdata.loading .spinner-box {
+  bottom: 0;
+  position: absolute;
+  right: 100%;
+  top: 0;
+  width: 40px;
+}
+
+.unmounted-panel:not([loading]) > .gdata.loading,
+.unmounted-panel:not([error]) > .gdata.error,
+.unmounted-panel:not([retry]) > .gdata.retry,
+.unmounted-panel:not([retry]) > .gdata.learn-more {
+  display: none;
+}
+
+body[ash] .dialog-title,
+body[type='full-page'] [invisibleif='full-page'],
+body:not([type='full-page']) [visibleif='full-page'],
+body:not([type='saveas-file']) [visibleif='saveas-file'],
+body:not([type='saveas-file']):not([type='full-page'])
+    [visibleif='saveas-file full-page'] {
+  display: none;
+}

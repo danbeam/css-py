@@ -1,0 +1,186 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+.feedback-label {
+  font-weight: 300;
+  text-align: start;
+  vertical-align: text-top;
+}
+
+.feedback-text {
+  width: 40em;
+}
+
+.feedback-table {
+  border-spacing: 0;
+  width: 40em;
+}
+
+.feedback-field {
+  border-style: solid;
+  border-width: 1px;
+  width: 22em;
+}
+
+.feedback-fieldlabel {
+  font-weight: 300;
+  width: 13em;
+}
+
+hr {
+  background: #ccc;
+  border: none;
+  height: 1px;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  width: 40em;
+}
+
+.thumbnail-list {
+  -webkit-margin-start: 1em;
+  margin-bottom: 1em;
+  margin-top: 0.5em;
+  width: 33.5em;
+}
+
+.image-thumbnail-container {
+  border: 2px solid white;
+  border-radius: 3px;
+  display: inline-block;
+  z-index: 0;
+}
+
+.image-thumbnail-container-selected {
+  border: 2px solid green;
+  border-radius: 3px;
+  display: inline-block;
+  z-index: 0;
+}
+
+.image-thumbnail-container:hover {
+  border: 2px solid rgb(184, 218, 176);
+  z-index: 0;
+}
+
+.image-popup {
+  width: 50%;
+}
+
+.image-thumbnail {
+  border: 2px solid white;
+  display: inline-block;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.image-thumbnail:hover {
+  z-index: 2;
+}
+
+.image-thumbnail div {
+  display: none;
+}
+
+.image-thumbnail img {
+  display: block;
+  width: 200px;
+}
+
+.image-thumbnail:hover div {
+  background-color: transparent;
+  border: 1px dashed blue;
+  display: block;
+  left: 0;
+  padding: 1px;
+  position: absolute;
+  text-align: center
+  top: 130%;
+}
+
+.image-thumbnail:hover div img {
+  position: absolute;
+  width: 400px;
+}
+
+.image-thumbnail-current {
+  border: 2px solid white;
+  display: inline-block;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.image-thumbnail-current:hover {
+  z-index: 2;
+}
+
+.image-thumbnail-current div {
+  display: none;
+}
+
+.image-thumbnail-current img {
+  display: block;
+  width: 200px;
+}
+
+.image-thumbnail-current:hover div {
+  background-color: transparent;
+  border: 1px dashed blue;
+  display: block;
+  left: 0;
+  padding: 1px;
+  position: absolute;
+  text-align: center
+  top: 130%;
+}
+
+.image-thumbnail-current:hover div img {
+  border: 1px dashed blue;
+  padding: 2px;
+  position: absolute;
+  width: 400px;
+}
+
+th {
+  font-weight: normal;
+  padding-top: 10px;
+}
+
+.formpane {
+  margin-right: 20px;
+}
+
+.feedback-input {
+  border-style: solid;
+  border-width: 1px;
+}
+
+#user-email-text {
+  border: none;
+}
+
+#buttons-pane {
+  /* Linux and Mac OS X display OK/Cancel dialogs in the reverse direction. */
+<if expr="not pp_ifdef('toolkit_views')">
+  -webkit-box-direction: reverse;
+</if>
+  display: -webkit-box;
+  padding: 0;
+}
+
+#send-report-button,
+#cancel-button {
+  display: block;
+}
+
+#privacy-note {
+  font-size: 90%;
+  font-weight: normal;
+  margin: 0;
+  padding-bottom: 10px;
+  padding-top: 24px;
+  text-align: start;
+  width: 44em;
+}

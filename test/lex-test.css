@@ -1,0 +1,26 @@
+@charset 'utf-8';
+
+@import url("blah.css");
+
+a:hover {
+  background: blue !important;
+}
+
+@page {
+  blah: -webkit-func(something);
+}
+
+@media screen {
+  a[d=e]:not(b) ~ c > e[f|=g][h^=i][j$=k][l*=j][k~='l'] + m {
+    -webkit-rule: #abc #012345 rgb(1,2,3);
+  }
+}
+
+@keyframes name {
+  to { }
+  from { }
+  0% { }
+  100% {
+    rule: 1em 1ex 1px 1cm 1mm 1in 1pt 1pc 1deg 1rad 1grad 1ms 1s 1hz 1khz;
+  }
+}

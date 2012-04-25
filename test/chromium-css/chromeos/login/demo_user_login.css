@@ -1,0 +1,44 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+#page {
+  -webkit-box-align: center;
+  -webkit-box-pack: center;
+  background: white;
+  display: -webkit-box;
+  height: 100%;
+  position: absolute;
+  width: 100%;
+}
+
+#logo-container {
+  text-align: center;
+}
+
+#logo {
+  -webkit-transition: opacity 1s linear;
+  opacity: 0;
+  width: 150px;
+}
+
+#demo-login-text {
+  /* Delay the login text showing up till the logo has fully faded in */
+  -webkit-transition: opacity 1s linear 1s;
+  font-size: 24px;
+  opacity: 0;
+  padding-top: 80px;
+}
