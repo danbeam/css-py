@@ -3,12 +3,15 @@
 A parser for CSS.
 '''
 
+
 import re
 from ply import yacc as ply_yacc
 from csslex import csslexer
 import css
 
+
 __all__ = ('cssparser', 'yacc')
+
 
 def normalize(x):
     '''Normalizes escaped characters to their literal value.'''
@@ -16,11 +19,13 @@ def normalize(x):
     r = lambda m: chr(int(m.groups()[0],16))
     return re.sub(p,r,x).lower()
 
+
 def URI_value(x):
     url = normalize(x)[4:-1].strip()
     if -1 != '"\''.find(url[0]):
         url = STRING_value(url)
     return css.Uri(url)
+
 
 def STRING_value(x):
     q = x[0]
@@ -39,7 +44,6 @@ class cssparser(object):
             p[0] = css.Stylesheet(p[4], p[3], p[1])
         else:
             p[0] = css.Stylesheet(p[3], p[2])
-        print p.slice
 
     def p_charset(self, p):
         '''
@@ -85,6 +89,12 @@ class cssparser(object):
         else:
             p[0] = css.Import(p[3])
 
+    def p_keyframes_rule(self, p):
+        '''
+        keyframes_rule : KEYFRAMES_SYM spaces IDENT spaces LBRACE spaces keyframes_blocks '}' spaces
+        '''
+        p[0] = css.KeyframesRule(p[3], p[7])
+
     def p_operator(self, p):
         '''
         operator : '/' spaces
@@ -97,6 +107,7 @@ class cssparser(object):
         '''
         combinator : PLUS spaces
                    | GREATER spaces
+                   | TILDE spaces
                    | spaces
         '''
         p[0] = p[1]
@@ -116,26 +127,49 @@ class cssparser(object):
 
     def p_ruleset(self, p):
         '''
-        ruleset : ruleset_selector_group LBRACE spaces block_declarations '}' spaces
+        ruleset : selectors_group LBRACE spaces block_declarations '}' spaces
         '''
         p[0] = css.Ruleset(p[1], p[4])
 
     def p_selector(self, p):
         '''
-        selector : simple_selector simple_selectors
+        selector : simple_selector_sequence simple_selectors
         '''
         p[0] = u''.join(p[1:])
 
-    def p_simple_selector(self, p):
+    def p_simple_selector_sequence(self, p):
         '''
-        simple_selector : element_name simple_selector_components
-                        | simple_selector_component simple_selector_components
+        simple_selector_sequence : type_selector simple_selector_components
+                                 | universal simple_selector_components
+                                 | simple_selector_component simple_selector_components
+        '''
+        p[0] = u''.join(p[1:])
+
+    def p_type_selector(self, p):
+        '''
+        type_selector : namespace_prefix element_name
+                      | element_name
+        '''
+        p[0] = u''.join(p[1:])
+
+    def p_universal(self, p):
+        '''
+        universal : namespace_prefix '*'
+                  | '*'
+        '''
+        p[0] = u''.join(p[1:])
+
+    def p_namespace_prefix(self, p):
+        '''
+        namespace_prefix : IDENT '|'
+                         | '*' '|'
+                         | '|'
         '''
         p[0] = u''.join(p[1:])
 
     def p_simple_selectors(self, p):
         '''
-        simple_selectors : combinator simple_selector simple_selectors
+        simple_selectors : combinator simple_selector_sequence simple_selectors
                          | empty
         '''
         p[0] = u''.join(p[1:])
@@ -147,6 +181,7 @@ class cssparser(object):
                                   | class
                                   | attrib
                                   | pseudo
+                                  | negation
         '''
         p[0] = p[1]
 
@@ -166,23 +201,75 @@ class cssparser(object):
     def p_element_name(self, p):
         '''
         element_name : IDENT
-                     | '*'
         '''
         p[0] = p[1]
 
     def p_attrib(self, p):
         '''
-        attrib : '[' spaces IDENT spaces attrib_match ']'
+        attrib : '[' spaces namespace_prefix IDENT spaces attrib_match ']'
+               | '[' spaces IDENT spaces attrib_match ']'
         '''
         p[0] = u''.join(p[1:])
 
     def p_pseudo(self, p):
         '''
-        pseudo : ':' IDENT
-               | ':' FUNCTION spaces IDENT spaces ')'
-               | ':' FUNCTION spaces ')'
+        pseudo : pseudo_colons IDENT
+               | pseudo_colons functional_pseudo
         '''
         p[0] = u''.join(p[1:])
+
+    def p_pseudo_colons(self, p):
+        '''
+        pseudo_colons : ':' ':'
+                      | ':'
+        '''
+        p[0] = u''.join(p[1:])
+
+    def p_functional_pseudo(self, p):
+        '''
+        functional_pseudo : FUNCTION spaces expressions spaces ')'
+        '''
+        p[0] = u''.join(p[1:])
+
+    def p_expressions(self, p):
+        '''
+        expressions : expressions spaces expression
+                    | expression
+        '''
+        if len(p) == 2:
+          p[0] = [p[1]]
+        else:
+          p[0] = p[1]
+          p[0].append(p[3])
+
+    # NOTE: These are part of a selector, whereas expr is part of a value of a rule.
+    def p_expression(self, p):
+        '''
+        expression : PLUS
+                   | '-'
+                   | DIMENSION
+                   | NUMBER
+                   | STRING
+                   | IDENT
+        '''
+        p[0] = p[1]
+
+    def p_negation(self, p):
+        '''
+        negation : NOT spaces negation_arg spaces ')'
+        '''
+        p[0] = u''.join(p[1:])
+
+    def p_negation_arg(self, p):
+        '''
+        negation_arg : type_selector
+                     | universal
+                     | HASH
+                     | class
+                     | attrib
+                     | pseudo
+        '''
+        p[0] = p[1]
 
     def p_declaration(self, p):
         '''
@@ -217,8 +304,8 @@ class cssparser(object):
     
     def p_term(self, p):
         '''
-        term : unary_operator term_quant spaces
-             | term_quant spaces
+        term : unary_operator term_quant
+             | term_quant
              | STRING spaces
              | IDENT spaces
              | URI spaces
@@ -240,14 +327,14 @@ class cssparser(object):
     
     def p_term_quant(self, p):
         '''
-        term_quant : NUMBER
-                   | PERCENTAGE
-                   | LENGTH
-                   | EMS
-                   | EXS
-                   | ANGLE
-                   | TIME
-                   | FREQ
+        term_quant : NUMBER spaces
+                   | PERCENTAGE spaces
+                   | LENGTH spaces
+                   | EMS spaces
+                   | EXS spaces
+                   | ANGLE spaces
+                   | TIME spaces
+                   | FREQ spaces
         '''
         p[0] = normalize(p[1])
 
@@ -272,9 +359,6 @@ class cssparser(object):
         '''
         p[0] = p[1] and u' '
 
-
-
-
     def p_imports(self, p):
         '''
         imports : imports import spaces_or_sgml_comments
@@ -294,9 +378,11 @@ class cssparser(object):
         statements : statements ruleset spaces_or_sgml_comments
                    | statements media spaces_or_sgml_comments
                    | statements page spaces_or_sgml_comments
+                   | statements keyframes_rule spaces_or_sgml_comments
                    | ruleset spaces_or_sgml_comments
                    | media spaces_or_sgml_comments
                    | page spaces_or_sgml_comments
+                   | keyframes_rule spaces_or_sgml_comments
                    | empty
         '''
         if not p[1]:
@@ -328,6 +414,46 @@ class cssparser(object):
             p[0] = p[1]
             p[0].append(p[4])
 
+    def p_keyframes_blocks(self, p):
+        '''
+        keyframes_blocks : keyframes_blocks spaces keyframes_block
+                         | keyframes_block
+        '''
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1]
+            p[0].append(p[3])
+
+    def p_keyframes_block(self, p):
+        '''
+        keyframes_block : keyframe_selectors LBRACE spaces block_declarations '}' spaces
+        '''
+        b = p[4] or list()
+        if isinstance(p[1], list):
+            p[0] = css.KeyframeBlock(p[1], b)
+        else:
+            p[0] = css.KeyframeBlock([p[1]], b)
+
+    def p_keyframe_selectors(self, p):
+        '''
+        keyframe_selectors : keyframe_selectors COMMA spaces keyframe_selector
+                           | keyframe_selector
+        '''
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1]
+            p[0].append(p[4])
+
+    def p_keyframe_selector(self, p):
+        '''
+        keyframe_selector : FROM_SYM spaces
+                          | TO_SYM spaces
+                          | PERCENTAGE spaces
+        '''
+        p[0] = p[1]
+
     def p_rulesets(self, p):
         '''
         rulesets : rulesets ruleset
@@ -342,10 +468,10 @@ class cssparser(object):
         else:
             p[0] = [p[1]]
 
-    def p_ruleset_selector_group(self, p):
+    def p_selectors_group(self, p):
         '''
-        ruleset_selector_group : ruleset_selector_group COMMA spaces selector
-                               | selector
+        selectors_group : selectors_group COMMA spaces selector
+                        | selector
         '''
         if len(p) == 2:
             p[0] = p[1:]
@@ -368,12 +494,21 @@ class cssparser(object):
 
     def p_attrib_match(self, p):
         '''
-        attrib_match : '=' spaces attrib_val spaces
-                     | INCLUDES spaces attrib_val spaces
-                     | DASHMATCH spaces attrib_val spaces
+        attrib_match : attrib_op spaces attrib_val spaces
                      | empty
         '''
         p[0] = u''.join(p[1:])
+
+    def p_attrib_op(self, p):
+        '''
+        attrib_op : PREFIXMATCH
+                  | SUFFIXMATCH
+                  | SUBSTRINGMATCH
+                  | '='
+                  | INCLUDES
+                  | DASHMATCH
+        '''
+        p[0] = p[1]
 
     def p_attrib_val(self, p):
         '''

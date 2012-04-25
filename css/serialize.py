@@ -45,6 +45,10 @@ def serialize(obj, printer=str):
         return serialize_Media(obj, printer)
     elif isinstance(obj, css.Import):
         return serialize_Import(obj, printer)
+    elif isinstance(obj, css.KeyframesRule):
+        return serialize_KeyframesRule(obj, printer)
+    elif isinstance(obj, css.KeyframeBlock):
+        return serialize_KeyframeBlock(obj, printer)
     elif isinstance(obj, css.Stylesheet):
         return serialize_Stylesheet(obj, printer)
     else:
@@ -105,6 +109,17 @@ def serialize_Import(obj, printer):
     if obj.media_types:
         s += printer(' ') + printer(',').join((printer(x) for x in obj.media_types))
     s += printer(';')
+    return s
+
+def serialize_KeyframesRule(obj, printer):
+    s = printer('@keyframes ') + serialize(obj.name, printer) + printer('{')
+    s += printer(' ').join((printer(b) for b in obj.blocks))
+    s += printer('}')
+    return s
+
+def serialize_KeyframeBlock(obj, printer):
+    s = serialize_Selector_group(obj.selectors, printer)
+    s += serialize_Declaration_block(obj.rulesets, printer)
     return s
 
 def serialize_Stylesheet(obj, printer):

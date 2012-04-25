@@ -25,6 +25,7 @@ def r_plus(rx):
 def r_opt(rx):
     return r_nongroup(rx) + ur'?'
 
+
 # lexer
 
 
@@ -82,6 +83,7 @@ A              = letter(u'A')
 C              = letter(u'C')
 D              = letter(u'D')
 E              = letter(u'E')
+F              = letter(u'F')
 G              = letter(u'G')
 H              = letter(u'H')
 I              = letter(u'I')
@@ -96,121 +98,164 @@ S              = letter(u'S')
 T              = letter(u'T')
 U              = letter(u'U')
 X              = letter(u'X')
+Y              = letter(u'Y')
 Z              = letter(u'Z')
+
 
 # %%
 
+
 class csslexer(object):
     literals = list(ur'*-:;.=/)}[]')
-    
+
     tokens = (
-        'S',
-        'CDO', 'CDC', 'INCLUDES', 'DASHMATCH',
-        'LBRACE', 'PLUS', 'GREATER', 'COMMA',
-        'STRING', 'INVALID',
-        'IDENT',
+        'ANGLE',
+        'CDC',
+        'CDO',
+        'CHARSET_SYM',
+        'COMMA',
+        'DASHMATCH',
+        'DIMENSION',
+        'EMS',
+        'EXS',
+        'FREQ',
+        'FROM_SYM',
+        'FUNCTION',
+        'GREATER',
         'HASH',
-        'IMPORT_SYM', 'PAGE_SYM', 'MEDIA_SYM', 'CHARSET_SYM',
+        'IDENT',
         'IMPORTANT_SYM',
-        'EMS', 'EXS', 'LENGTH', 'ANGLE', 'TIME', 'FREQ', 'DIMENSION',
-        'PERCENTAGE', 'NUMBER',
-        'URI', 'FUNCTION'
+        'IMPORT_SYM',
+        'INCLUDES',
+        'INVALID',
+        'KEYFRAMES_SYM',
+        'LBRACE',
+        'LENGTH',
+        'MEDIA_SYM',
+        'NOT',
+        'NUMBER',
+        'PAGE_SYM',
+        'PERCENTAGE',
+        'PLUS',
+        'PREFIXMATCH',
+        'S',
+        'STRING',
+        'SUBSTRINGMATCH',
+        'SUFFIXMATCH',
+        'TILDE',
+        'TIME',
+        'TO_SYM',
+        'URI',
         )
-        
-    # several of the following are defined as functions rather 
-    # than simple rules so that tokenizing precedence works properly, 
+
+    # several of the following are defined as functions rather
+    # than simple rules so that tokenizing precedence works properly,
     # i.e. lengths, etc. are not parsed as dimensions
-    
-    t_S            = s
-    
+
+    t_S              = s
+
     # comments are ignored, but line breaks are counted
     @_lex.TOKEN(comment)
     def t_COMMENT(self, t):
-        t.lexer.lineno += len(re.findall(nl,t.value)) 
+        t.lexer.lineno += len(re.findall(nl,t.value))
         return None
-    
-    t_CDO          = ur'\<\!\-\-'
-    t_CDC          = ur'\-\-\>'
-    t_INCLUDES     = ur'\~\='
-    t_DASHMATCH    = ur'\|\='
-    
-    t_LBRACE       = w + ur'\{'
-    t_PLUS         = w + ur'\+'
-    t_GREATER      = w + ur'\>'
-    t_COMMA        = w + ur'\,'
-    
+
+    t_CDO            = ur'\<\!\-\-'
+    t_CDC            = ur'\-\-\>'
+
+    t_LBRACE         = w + ur'\{'
+    t_PLUS           = w + ur'\+'
+    t_GREATER        = w + ur'\>'
+    t_COMMA          = w + ur'\,'
+    t_TILDE          = w + ur'\~'
+
+    t_INCLUDES       = t_TILDE + ur'\='
+    t_DASHMATCH      = ur'\|\='
+    t_PREFIXMATCH    = ur'\^\='
+    t_SUFFIXMATCH    = ur'\$\='
+    t_SUBSTRINGMATCH = ur'\*\='
+
     @_lex.TOKEN(string)
     def t_STRING(self, t):
-        t.lexer.lineno += len(re.findall(nl,t.value)) 
+        t.lexer.lineno += len(re.findall(nl,t.value))
         return t
-    
+
     @_lex.TOKEN(invalid)
-    def t_INVALID(self, t): 
-        t.lexer.lineno += len(re.findall(nl,t.value)) 
+    def t_INVALID(self, t):
+        t.lexer.lineno += len(re.findall(nl,t.value))
         return t
-    
-    t_IDENT = ident
-    
-    t_HASH         = ur'\#' + name
-    
-    t_IMPORT_SYM   = ur'@' + I + M + P + O + R + T
-    t_PAGE_SYM     = ur'@' + P + A + G + E
-    t_MEDIA_SYM    = ur'@' + M + E + D + I + A
-    
+
+    t_IDENT          = ident
+
+    t_HASH           = ur'\#' + name
+
+    t_IMPORT_SYM     = ur'@' + I + M + P + O + R + T
+    t_PAGE_SYM       = ur'@' + P + A + G + E
+    t_MEDIA_SYM      = ur'@' + M + E + D + I + A
+
+    t_KEYFRAMES_SYM  = ur'@' + K + E + Y + F + R + A + M + E + S
+    t_FROM_SYM       = F + R + O + M
+
+    @_lex.TOKEN(T + O) # I have no freaking clue why this is necessary...
+    def t_TO_SYM(self, t):
+        return t
+
+    t_NOT            = ur'\:' + N + O + T + '\('
+
     # Per the CSS 2.1 errata, the charset rule must be in lowercase
     # and must have a trailing space.
-    t_CHARSET_SYM  = ur'@charset\ '
-    
-    t_IMPORTANT_SYM = ur'\!' + \
+    t_CHARSET_SYM    = ur'@charset\ '
+
+    t_IMPORTANT_SYM  = ur'\!' + \
         r_star(r_or(w,comment)) + \
         I + M + P + O + R + T + A + N + T
-        
+
     @_lex.TOKEN(num + E + M)
-    def t_EMS(self, t): 
+    def t_EMS(self, t):
         return t
-    
+
     @_lex.TOKEN(num + E + X)
-    def t_EXS(self, t): 
+    def t_EXS(self, t):
         return t
-    
+
     @_lex.TOKEN(num + r_or(P + X, r_or(C, M) + M, I + N, P + r_or(T, C)))
-    def t_LENGTH(self, t): 
+    def t_LENGTH(self, t):
         return t
-    
+
     @_lex.TOKEN(num + r_or(D + E + G, r_opt(G) + R + A + D))
-    def t_ANGLE(self, t): 
+    def t_ANGLE(self, t):
         return t
-    
+
     @_lex.TOKEN(num + r_opt(M) + S)
-    def t_TIME(self, t): 
+    def t_TIME(self, t):
         return t
-    
+
     @_lex.TOKEN(num + r_opt(K) + H + Z)
-    def t_FREQ(self, t): 
+    def t_FREQ(self, t):
         return t
-    
+
     @_lex.TOKEN(num + ident)
-    def t_DIMENSION(self, t): 
+    def t_DIMENSION(self, t):
         return t
-    
+
     @_lex.TOKEN(num + ur'%')
-    def t_PERCENTAGE(self, t): 
+    def t_PERCENTAGE(self, t):
         return t
-    
+
     t_NUMBER       = num
-    
+
     @_lex.TOKEN(U + R + L + ur'\(' + w + r_or(string, url) + w + ur'\)')
     def t_URI(self, t):
         return t
-    
+
     @_lex.TOKEN(ident + ur'\(')
-    def t_FUNCTION(self, t): 
+    def t_FUNCTION(self, t):
         return t
-    
+
     def t_error(self, t):
         print "Illegal token '%s'" % t.value[0]
         t.lexer.skip(1)
-    
+
 
 
 def lex(**kw):

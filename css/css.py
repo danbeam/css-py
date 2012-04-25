@@ -3,13 +3,16 @@
 Classes representing CSS syntactic concepts.
 '''
 
+
 import re
 import itertools
 import serialize
 
+
 __all__ = ('Hexcolor', 'Function', 'Uri', 'String', 'Ident',
            'Term', 'Declaration', 'Ruleset', 'Charset', 'Page',
            'Media', 'Import', 'Stylesheet')
+
 
 class SyntaxObject(object):
     '''An abstract type of syntactic construct.'''
@@ -31,6 +34,7 @@ class SyntaxObject(object):
 
 re_hexcolor = re.compile(r'#[0-9a-fA-F]{3,6}$')
 
+
 class Hexcolor(SyntaxObject):
     '''
     An RGB color in hex notation.
@@ -50,7 +54,8 @@ class Hexcolor(SyntaxObject):
     def datum(self, serializer):
         return serialize.serialize_Hexcolor(self, serializer)
 
-class Function(object):
+
+class Function(SyntaxObject):
     '''
     A term in functional notation, e.g. colors specified with rgb().
     
@@ -83,6 +88,7 @@ class Uri(SyntaxObject):
     def datum(self, serializer):
         return serialize.serialize_Uri(self, serializer)
 
+
 class String(SyntaxObject):
     '''
     A string of characters delimited by quotation marks.
@@ -96,6 +102,7 @@ class String(SyntaxObject):
     def datum(self, serializer):
         return serialize.serialize_String(self, serializer)
 
+
 class Ident(SyntaxObject):
     '''
     An identifier.
@@ -108,6 +115,7 @@ class Ident(SyntaxObject):
 
     def datum(self, serializer):
         return serialize.serialize_Ident(self, serializer)
+
 
 class Term(SyntaxObject):
     '''
@@ -201,6 +209,7 @@ class Ruleset(SyntaxObject):
 
     def datum(self, serializer):
         return serialize.serialize_Ruleset(self, serializer)
+
 
 class Charset(SyntaxObject):
     '''
@@ -300,10 +309,11 @@ class Media(SyntaxObject):
         '''
         if not isinstance(ruleset, Ruleset):
             raise ArgumentError, 'Expected a Ruleset.'
-        self.ruleset.append(ruleset)
+        self.rulesets.append(ruleset)
 
     def datum(self, serializer):
         return serialize.serialize_Media(self, serializer)
+
 
 class Import(SyntaxObject):
     '''
@@ -326,6 +336,79 @@ class Import(SyntaxObject):
 
     def datum(self, serializer):
         return serialize.serialize_Import(self, serializer)
+
+
+class KeyframesRule(SyntaxObject):
+    '''
+    A @keyframes rule statement containing a list of KeyframeSelector objects.
+    '''
+    def __init__(self, name, blocks=None):
+        self.name = name
+        self.blocks = blocks or list()
+
+    def __repr__(self):
+        r = 'KeyframesRule(' + repr(self.name)
+        if self.blocks:
+            r += ', blocks=' + repr(self.blocks)
+        r += ')'
+        return r
+
+    def __iter__(self):
+        return iter(self.blocks)
+
+    def __len__(self):
+        return len(self.blocks)
+
+    def __getitem__(self, index):
+        return self.blocks[index]
+
+    def __contains__(self, item):
+        return item in self.blocks
+
+    def datum(self, serializer):
+        return serialize.serialize_KeyframesRule(self, serializer)
+
+    def append(self, block):
+        if not isinstance(block, KeyframeBlock):
+            raise ArgumentError, 'Expected a KeyframeBlock.'
+        self.blocks.append(block)
+
+
+class KeyframeBlock(SyntaxObject):
+    '''
+    An individual key frame selector in a @keyframes rule. These are usually
+    denoting points in an animation when something should occur. For example:
+
+      0% { width: 0px; } /* The animation should start at 0px width. */
+      100% { width: 100px; } /* The animation should end at 100px width. */
+
+    '''
+    def __init__(self, selectors, rulesets=None):
+        self.selectors = selectors
+        self.rulesets = rulesets or list()
+
+    def __repr__(self):
+        r = 'KeyframeSelector(' + repr(self.selectors)
+        if self.rulesets:
+          r += ', rulesets=' + repr(self.rulesets)
+        r += ')'
+        return r
+
+    def __iter__(self):
+        return iter(self.rulesets)
+
+    def __len__(self):
+        return len(self.rulesets)
+
+    def __getitem__(self, index):
+        return self.rulesets[index]
+
+    def __contains__(self, item):
+        return item in self.rulesets
+
+    def datum(self, serializer):
+        return serialize.serialize_KeyframeBlock(self, serializer)
+
 
 class Stylesheet(SyntaxObject):
     '''
@@ -392,11 +475,5 @@ class Stylesheet(SyntaxObject):
         else:
             self.statements.append(rule)
 
-
     def datum(self, serializer):
         return serialize.serialize_Stylesheet(self, serializer)        
-
-
-
-    
-
