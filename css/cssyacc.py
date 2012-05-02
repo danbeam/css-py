@@ -144,7 +144,10 @@ class cssparser(object):
                    | TILDE spaces
                    | spaces
         '''
-        p[0] = p[1]
+        if len(p) == 2:
+            p[0] = u' '
+        else:
+            p[0] = p[1].lstrip()
 
     def p_unary_operator(self, p):
         '''
@@ -209,7 +212,7 @@ class cssparser(object):
         if not p[1]:
             p[0] = ''
         else:
-            p[0] = p[1] + u' ' + u''.join(p[2:])
+            p[0] = u''.join(p[1:])
 
 
     def p_simple_selector_component(self, p):
