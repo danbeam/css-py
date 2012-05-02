@@ -1,0 +1,73 @@
+@charset 'utf-8';
+
+/* All of these are commented out to make sure they're successfully ignored.
+
+@import url("blah.css");
+
+<include src="blee.css">
+
+a:hover {
+  background: blue !important;
+}
+
+<if expr="is_macosx">
+@page {
+  blah: -webkit-func(something);
+}
+</if>
+
+@media screen {
+  a[d=e]:not(b) ~ c > e[f|=g][h^=i][j$=k][l*=j][k~='l'] + m {
+    border: 1px solid red;
+    width: 100px;
+<if expr="is_posix">
+    -webkit-rule: #abc #012345 rgb(1,2,3);
+</if>
+  }
+}
+
+@-webkit-keyframes name {
+  to { }
+  from { }
+  0% { }
+  100% {
+    rule: 1em 1ex 1px 1cm 1mm 1in 1pt 1pc 1deg 1rad 1grad 1ms 1s 1hz 1khz;
+  }
+}
+
+*/
+
+@import url("blah.css");
+
+<include src="blee.css">
+
+a:hover {
+  background: blue !important;
+}
+
+<if expr="is_macosx">
+@page {
+  blah: -webkit-func(something);
+}
+</if>
+
+@media screen {
+  a[d=e]:not(b) ~ c > e[f|=g][h^=i][j$=k][l*=j][k~='l'] + m {
+    border-left: 1px solid red;
+    border-right: 1px solid red;
+<if expr="is_posix">
+    -webkit-rule: #abc #012345 rgb(1,2,3);
+</if>
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+@-webkit-keyframes name {
+  to { }
+  from { }
+  0% { }
+  100% {
+    rule: 1em 1ex 1px 1cm 1mm 1in 1pt 1pc 1deg 1rad 1grad 1ms 1s 1hz 1khz;
+  }
+}

@@ -58,13 +58,17 @@ def serialize(obj, printer=str):
     elif isinstance(obj, css.Stylesheet):
         return serialize_Stylesheet(obj, printer)
     else:
-        return printer(obj)
+        return '' if obj == None else printer(obj)
 
 def serialize_Hexcolor(obj, printer):
     return printer('#') + printer(obj.value)
 
 def serialize_Function(obj, printer):
-    return printer(obj.name) + printer('(') + printer(obj.parameters) + printer(')')
+    s = printer(obj.name) + printer('(')
+    if obj.params:
+        s += printer(obj.params)
+    s += printer(')')
+    return s
 
 def serialize_Uri(obj, printer):
     return printer('url(') + printer(obj.url) + printer(')')
@@ -132,10 +136,10 @@ def serialize_KeyframeBlock(obj, printer):
     return s
 
 def serialize_GritStatementList(obj, printer):
-    s = printer('<if expr=') + printer(obj.expr) + printer('>')
+    s = printer('<if expr=') + printer(obj.expr) + printer('>\n')
     if obj.statements:
-        s += printer(' ').join((serialize(x, printer) for x in obj.statements))
-    s += printer('</if>')
+        s += printer('\n').join((serialize(x, printer) for x in obj.statements))
+    s += printer('\n</if>')
     return s
 
 def serialize_GritDeclarationList(obj, printer):
@@ -161,7 +165,12 @@ def serialize_Selector_group(selectors, printer):
     return printer(',').join((printer(x) for x in selectors))
 
 def _serialize_Declarations(declarations, printer):
-    return printer(';').join((serialize(x, printer) for x in declarations))
+    s = printer('')
+    for i, decl in enumerate(declarations):
+        s += serialize(decl, printer)
+        if isinstance(decl, css.Declaration):
+            s += printer(';')
+    return s
 
 def serialize_Declaration_block(declarations, printer):
     return printer('{') + _serialize_Declarations(declarations, printer) + printer('}')

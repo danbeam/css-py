@@ -1,0 +1,7 @@
+@import url(yay.css);
+<include scr="all.css">
+
+<if expr="is_macosx">
+<include src='blah.css'>
+@import url(blee.css);
+</if>

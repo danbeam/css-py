@@ -35,6 +35,11 @@ def STRING_value(x):
 class cssparser(object):
     tokens = csslexer.tokens
 
+    precedence = (
+        ('left', 'FUNCTION'),
+        ('left', 'URI'),
+        )
+
     def p_stylesheet(self, p):
         '''
         stylesheet : charset spaces_or_sgml_comments imports statements
@@ -206,7 +211,10 @@ class cssparser(object):
         simple_selectors : combinator simple_selector_sequence simple_selectors
                          | empty
         '''
-        p[0] = u''.join(p[1:])
+        if not p[1]:
+            p[0] = ''
+        else:
+            p[0] = p[1] + u' ' + u''.join(p[2:])
 
 
     def p_simple_selector_component(self, p):
@@ -263,7 +271,7 @@ class cssparser(object):
         '''
         functional_pseudo : FUNCTION spaces expressions spaces ')'
         '''
-        p[0] = u''.join(p[1:])
+        p[0] = p[1] + u' '.join(p[3]) + u')'
 
     def p_expressions(self, p):
         '''
@@ -286,7 +294,7 @@ class cssparser(object):
                    | STRING
                    | IDENT
         '''
-        p[0] = p[1]
+        p[0] = normalize(p[1])
 
     def p_negation(self, p):
         '''
@@ -375,9 +383,13 @@ class cssparser(object):
     def p_function(self, p):
         '''
         function : FUNCTION spaces expr ')' spaces
+                 | FUNCTION spaces ')' spaces
         '''
         name = p[1][:-1] # strip the open paren
-        p[0] = css.Function(name, p[3])
+        if len(p) == 6:
+            p[0] = css.Function(name, params=p[3])
+        else:
+            p[0] = css.Function(name)
 
     def p_hexcolor(self, p):
         '''
@@ -487,10 +499,11 @@ class cssparser(object):
 
     def p_keyframe_selector(self, p):
         '''
-        keyframe_selector : FROM_SYM spaces
-                          | TO_SYM spaces
+        keyframe_selector : IDENT spaces
                           | PERCENTAGE spaces
         '''
+        # TODO(dbeam): Make sure IDENT = from or to either via grammar or check here.
+        # If via grammar, figure out how precedence in lexer/parser actually works...
         p[0] = p[1]
 
     def p_rulesets(self, p):
@@ -519,15 +532,31 @@ class cssparser(object):
 
     def p_block_declarations(self, p):
         '''
-        block_declarations : block_declarations ';' spaces declaration
-                           | block_declarations ';' spaces grit_declaration_list
-                           | declaration
+        block_declarations : block_declarations declarations
+                           | block_declarations grit_declaration_list
+                           | declarations
                            | grit_declaration_list
         '''
         if len(p) == 2:
             p[0] = []
-            if p[1]:
+            if isinstance(p[1], list):
+                p[0].extend(p[1])
+            elif p[1]:
                 p[0].append(p[1])
+        else:
+            p[0] = p[1]
+            if isinstance(p[2], list):
+                p[0].extend(p[2])
+            elif p[2]:
+                p[0].append(p[2])
+
+    def p_declarations(self, p):
+        '''
+        declarations : declarations ';' spaces declaration
+                     | declaration
+        '''
+        if len(p) == 2:
+            p[0] = [p[1]]
         else:
             p[0] = p[1]
             if p[4]:
@@ -535,20 +564,9 @@ class cssparser(object):
 
     def p_grit_declaration_list(self, p):
         '''
-        grit_declaration_list : grit_if_expr spaces grit_declarations spaces GRIT_IF_END spaces
+        grit_declaration_list : grit_if_expr spaces declarations spaces GRIT_IF_END spaces
         '''
         p[0] = css.GritDeclarationList(p[1], p[3])
-
-    def p_grit_declarations(self, p):
-        '''
-        grit_declarations : grit_declarations ';' spaces declaration
-                          | declaration
-        '''
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1]
-            p[0].append(p[4])
 
     def p_attrib_match(self, p):
         '''

@@ -55,9 +55,9 @@ invalid2       = r"'%s" % r_star(r_or(ur"[^\n\r\f\\']",
                                       escape))
 
 comment        = ur'\/\*[^*]*\*+(?:[^/][^*]*\*+)*\/'
-comment = ur'\/\*' + r_star(ur'[^*]') + r_plus(ur'\*') + \
-          r_star(ur'[^/]' + r_star(ur'[^*]') + r_plus(ur'\*')) + \
-          ur'\/'
+comment        = ur'\/\*' + r_star(ur'[^*]') + r_plus(ur'\*') + \
+                 r_star(ur'[^/]' + r_star(ur'[^*]') + r_plus(ur'\*')) + \
+                 ur'\/'
 
 ident          = r_opt(ur'-') + nmstart + r_star(nmchar)
 name           = r_plus(nmchar)
@@ -80,6 +80,7 @@ def normalize(x):
     return re.sub(p,r,x).lower()
 
 A              = letter(u'A')
+B              = letter(u'B')
 C              = letter(u'C')
 D              = letter(u'D')
 E              = letter(u'E')
@@ -87,16 +88,20 @@ F              = letter(u'F')
 G              = letter(u'G')
 H              = letter(u'H')
 I              = letter(u'I')
+J              = letter(u'J')
 K              = letter(u'K')
 L              = letter(u'L')
 M              = letter(u'M')
 N              = letter(u'N')
 O              = letter(u'O')
 P              = letter(u'P')
+Q              = letter(u'Q')
 R              = letter(u'R')
 S              = letter(u'S')
 T              = letter(u'T')
 U              = letter(u'U')
+U              = letter(u'V')
+W              = letter(u'W')
 X              = letter(u'X')
 Y              = letter(u'Y')
 Z              = letter(u'Z')
@@ -119,7 +124,6 @@ class csslexer(object):
         'EMS',
         'EXS',
         'FREQ',
-        'FROM_SYM',
         'FUNCTION',
         'GREATER',
         'GRIT_EXPR',
@@ -148,7 +152,6 @@ class csslexer(object):
         'SUFFIXMATCH',
         'TILDE',
         'TIME',
-        'TO_SYM',
         'URI',
         )
 
@@ -178,6 +181,7 @@ class csslexer(object):
     t_PREFIXMATCH    = ur'\^\='
     t_SUFFIXMATCH    = ur'\$\='
     t_SUBSTRINGMATCH = ur'\*\='
+    t_NOT            = ur'\:' + N + O + T + '\('
 
     @_lex.TOKEN(string)
     def t_STRING(self, t):
@@ -196,15 +200,7 @@ class csslexer(object):
     t_IMPORT_SYM     = ur'@' + I + M + P + O + R + T
     t_PAGE_SYM       = ur'@' + P + A + G + E
     t_MEDIA_SYM      = ur'@' + M + E + D + I + A
-
-    t_KEYFRAMES_SYM  = ur'@' + K + E + Y + F + R + A + M + E + S
-    t_FROM_SYM       = F + R + O + M
-
-    @_lex.TOKEN(T + O) # I have no freaking clue why this is necessary...
-    def t_TO_SYM(self, t):
-        return t
-
-    t_NOT            = ur'\:' + N + O + T + '\('
+    t_KEYFRAMES_SYM  = ur'@\-' + W + E + B + K + I + T + ur'\-' + K + E + Y + F + R + A + M + E + S
 
     # Per the CSS 2.1 errata, the charset rule must be in lowercase
     # and must have a trailing space.

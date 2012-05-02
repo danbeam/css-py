@@ -61,13 +61,19 @@ class Function(SyntaxObject):
     
     Note: although URIs are specified with the functional notation url(),
     they are a distinct type of data.
+
+    Additionally, in the upcoming filters spec, one's allowed to have a function without an expr.
     '''
-    def __init__(self, name, parameters):
+    def __init__(self, name, params=None):
         self.name = name
-        self.parameters = parameters
+        self.params = params
 
     def __repr__(self):
-        return 'Function(%r, %r)' % (self.name, self.parameters)
+        s = 'Function(' + repr(self.name)
+        if self.params:
+            s += ', params=' + repr(self.params)
+        s += ')'
+        return s
 
     def datum(self, serializer):
         return serialize.serialize_Function(self, serializer)

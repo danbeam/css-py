@@ -81,11 +81,11 @@ body {
 
 #scroll-up {
   /* TODO(oshima): get right icons from UX designer */
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAADCAYAAACwAX77AAAAI0lEQVQImWNgQIA4BgaGuQxoII6BgeEvAwPDf2RJZEEYngsA2N8I6FqZBpwAAAAASUVORK5CYII=);
+  /* background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAADCAYAAACwAX77AAAAI0lEQVQImWNgQIA4BgaGuQxoII6BgeEvAwPDf2RJZEEYngsA2N8I6FqZBpwAAAAASUVORK5CYII=); */
 }
 
 #scroll-down {
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAADCAYAAACwAX77AAAAIklEQVQImWNgYGCIY2Bg+MfAwPAfCc9jgAJkSbggsiRcEACghQjtUFgYGwAAAABJRU5ErkJggg==);
+  /* background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAADCAYAAACwAX77AAAAIklEQVQImWNgYGCIY2Bg+MfAwPAfCc9jgAJkSbggsiRcEACghQjtUFgYGwAAAABJRU5ErkJggg==); */
 }
 
 .scroll-button:hover {
