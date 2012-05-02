@@ -166,9 +166,10 @@ def serialize_Selector_group(selectors, printer):
 
 def _serialize_Declarations(declarations, printer):
     s = printer('')
+    num_decls = len(declarations)
     for i, decl in enumerate(declarations):
         s += serialize(decl, printer)
-        if isinstance(decl, css.Declaration):
+        if isinstance(decl, css.Declaration) and i < num_decls - 1:
             s += printer(';')
     return s
 
