@@ -58,7 +58,7 @@ def serialize(obj, printer=str):
     elif isinstance(obj, css.Stylesheet):
         return serialize_Stylesheet(obj, printer)
     else:
-        return '' if obj == None else printer(obj)
+        return printer(obj)
 
 def serialize_Hexcolor(obj, printer):
     return printer('#') + printer(obj.value)

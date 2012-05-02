@@ -35,11 +35,6 @@ def STRING_value(x):
 class cssparser(object):
     tokens = csslexer.tokens
 
-    precedence = (
-        ('left', 'FUNCTION'),
-        ('left', 'URI'),
-        )
-
     def p_stylesheet(self, p):
         '''
         stylesheet : charset spaces_or_sgml_comments imports statements
