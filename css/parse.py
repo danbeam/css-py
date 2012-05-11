@@ -5,6 +5,7 @@ from urllib2 import urlopen
 from codecs import EncodedFile
 import css, csslex, cssyacc
 from uri import uri
+from os import path
 
 __all__ = ('parse','export')
 
@@ -15,11 +16,8 @@ def parse(data):
 
 def export(base, stylesheet, recursive=False):
     def recur(rule):
-        url = rule.source
-        if isinstance(url, css.Uri):
-            url = url.url
-        url = uri.resolve(base, url)
-        export(base, parse(urlopen(url).read()), recursive)
+        infile = url_or_file(rule.source)
+        export(base, parse(infile.read()), recursive)
 
     for rule in stylesheet:
         if recursive and isinstance(rule, css.Import):
@@ -27,21 +25,26 @@ def export(base, stylesheet, recursive=False):
         else:
             print rule.datum(unicode)
 
+def url_or_file(f):
+    if isinstance(f, css.Uri):
+        f = f.url
+    return open(f) if path.exists(f) else urlopen(f)
 
-def main(fileuri, options):
-    inputfile = urlopen(fileuri)
 
-    stylesheet = parse(inputfile.read())
-    export(fileuri, stylesheet)
+def main(files_or_uris, options):
+    for i, f in enumerate(files_or_uris):
+        infile = url_or_file(f)
+        print '%s/* %s: %s */' % (u'' if i == 0 else u'\n', u'file' if isinstance(infile, file) else u'url', f)
+        export(f, parse(infile.read()), recursive=options.recursive)
     
 
 if '__main__' == __name__:
     from optparse import OptionParser
-    opts = OptionParser("usage: %prog [options] filename")
-
+    opts = OptionParser("usage: %prog [options] <file_or_urls>")
+    opts.add_option('-r', '--recursive', dest='recursive', action='store_true', default=False)
     options, args = opts.parse_args()
 
-    if 1 != len(args):
-        opts.error("no filename given")
+    if len(args) == 0:
+        opts.error("no file[s] or url[s] given")
         
-    main(args[0],options)
+    main(args, options)
