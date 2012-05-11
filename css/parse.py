@@ -16,8 +16,7 @@ def parse(data):
 
 def export(base, stylesheet, recursive=False):
     def recur(rule):
-        infile = url_or_file(rule.source)
-        export(base, parse(infile.read()), recursive)
+        export(base, parse(url_or_file(rule.source).read()), recursive)
 
     for rule in stylesheet:
         if recursive and isinstance(rule, css.Import):
