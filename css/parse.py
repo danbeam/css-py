@@ -1,18 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 from urllib2 import urlopen
 from codecs import EncodedFile
 import css, csslex, cssyacc
 from uri import uri
 from os import path
 
+
 __all__ = ('parse','export')
+
 
 def parse(data):
     parser = cssyacc.yacc()
     parser.lexer = csslex.lex()
     return parser.parse(data) #, debug=True)
+
 
 def export(base, stylesheet, recursive=False):
     def recur(rule):
@@ -23,6 +27,7 @@ def export(base, stylesheet, recursive=False):
             recur(rule)
         else:
             print rule.datum(unicode)
+
 
 def url_or_file(f):
     if isinstance(f, css.Uri):
