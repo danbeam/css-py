@@ -38,7 +38,7 @@ def main(files_or_uris, options):
     for i, f in enumerate(files_or_uris):
         infile = url_or_file(f)
         print '%s/* %s: %s */' % (u'' if i == 0 else u'\n', u'file' if isinstance(infile, file) else u'url', f)
-        print export(f, parse(infile.read()), recursive=options.recursive)
+        print export(f, parse(infile.read()), recursive=options.recursive).rstrip()
     
 
 if '__main__' == __name__:

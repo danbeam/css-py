@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 
-import csslex, cssyacc
-import parse
+import csslex, cssyacc, parse
 import unittest
 
 
@@ -47,6 +46,46 @@ class yacc_test(unittest.TestCase):
   100% { width: 100px; }
 }""", u"""
 @-webkit-keyframes name{from{some:value} to{some:other(value)} 0%{width:0} 100%{width:100px}}""")
+
+    def testGritStatementList(self):
+        self.assertParsedContentEquals(u"""
+<if expr="is_macosx">
+ @import url(blah.css);
+</if>
+<if expr="not is_posix">
+  <include src="windows.css">
+</if>
+<if expr="is_chromeos">
+   some rule {
+     that: is only on "chromeos";
+   }
+    @-webkit-keyframes name
+    {
+      from { your: mommas house; }
+      to { your: daddys house; }
+    }
+     @media screen {
+       /* screen ftw! */
+     }
+</if>""", u"""
+<if expr="is_macosx">
+@import url(blah.css);
+</if>
+<if expr="not is_posix">
+<include src="windows.css">
+</if>
+<if expr="is_chromeos">
+some rule{that:is only on "chromeos"}
+@-webkit-keyframes name{from{your:mommas house} to{your:daddys house}}
+@media screen{}
+</if>""")
+
+
+    def testGritDeclarationList(self):
+        self.assertParsedContentEquals(u"""
+    """, u"""
+    """)
+
 
 
 #    def testSample(self):

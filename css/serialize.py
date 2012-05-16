@@ -93,25 +93,26 @@ def serialize_Declaration(obj, printer):
         s += printer(' !important')
     return s
 
-def serialize_Ruleset(obj, printer):
+def serialize_Ruleset(obj, printer, after='\n'):
     s = serialize_Selector_group(obj.selectors, printer)
     s += serialize_Declaration_block(obj.declarations, printer)
+    s += printer(after)
     return s
 
 def serialize_Charset(obj, printer):
-    return printer('@charset ') + printer(obj.encoding) + printer(';')
+    return printer('@charset ') + printer(obj.encoding) + printer(';\n')
 
 def serialize_Page(obj, printer):
     s = printer('@page')
     if obj.pseudo_page:
         s += serialize_Pseudo(obj.pseudo_page, printer)
-    s += serialize_Declaration_block(obj.declarations, printer)
+    s += serialize_Declaration_block(obj.declarations, printer) + printer('\n')
     return s
 
 def serialize_Media(obj, printer):
     s = printer('@media ')
     s += printer(',').join((printer(x) for x in obj.media_types))
-    s += printer('{') + printer('\n').join([serialize_Ruleset(x, printer) for x in obj.rulesets]) + printer('}')
+    s += printer('{') + printer(' ').join([serialize_Ruleset(x, printer, after='') for x in obj.rulesets]) + printer('}\n')
     return s
 
 def serialize_Import(obj, printer):
@@ -127,7 +128,7 @@ def serialize_GritInclude(obj, printer):
 def serialize_KeyframesRule(obj, printer):
     s = printer('@-webkit-keyframes ') + serialize(obj.name, printer) + printer('{')
     s += printer(' ').join((printer(b) for b in obj.blocks))
-    s += printer('}')
+    s += printer('}\n')
     return s
 
 def serialize_KeyframeBlock(obj, printer):
@@ -138,8 +139,8 @@ def serialize_KeyframeBlock(obj, printer):
 def serialize_GritStatementList(obj, printer):
     s = printer('<if expr=') + printer(obj.expr) + printer('>\n')
     if obj.statements:
-        s += printer('\n').join((serialize(x, printer) for x in obj.statements))
-    s += printer('\n</if>')
+        s += printer('').join((serialize(x, printer) for x in obj.statements))
+    s += printer('</if>\n')
     return s
 
 def serialize_GritDeclarationList(obj, printer):
