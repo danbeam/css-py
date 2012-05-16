@@ -20,13 +20,12 @@ def parse(data):
 
 def export(base, stylesheet, recursive=False):
     def recur(rule):
-        export(base, parse(url_or_file(rule.source).read()), recursive)
+        return export(base, parse(url_or_file(rule.source).read()), recursive)
 
-    for rule in stylesheet:
-        if recursive and isinstance(rule, css.Import):
-            recur(rule)
-        else:
-            print rule.datum(unicode)
+    output = ''
+    for r in stylesheet:
+        output += recur(r) if recursive and isinstance(r, css.Import) else r.datum(unicode)
+    return output
 
 
 def url_or_file(f):
@@ -39,7 +38,7 @@ def main(files_or_uris, options):
     for i, f in enumerate(files_or_uris):
         infile = url_or_file(f)
         print '%s/* %s: %s */' % (u'' if i == 0 else u'\n', u'file' if isinstance(infile, file) else u'url', f)
-        export(f, parse(infile.read()), recursive=options.recursive)
+        print export(f, parse(infile.read()), recursive=options.recursive)
     
 
 if '__main__' == __name__:

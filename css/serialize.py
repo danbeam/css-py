@@ -118,14 +118,14 @@ def serialize_Import(obj, printer):
     s = printer('@import ') + serialize(obj.source, printer)
     if obj.media_types:
         s += printer(' ') + printer(',').join((printer(x) for x in obj.media_types))
-    s += printer(';')
+    s += printer(';\n')
     return s
 
 def serialize_GritInclude(obj, printer):
-    return printer('<include src=') + serialize(obj.source, printer) + printer('>')
+    return printer('<include src=') + serialize(obj.source, printer) + printer('>\n')
 
 def serialize_KeyframesRule(obj, printer):
-    s = printer('@keyframes ') + serialize(obj.name, printer) + printer('{')
+    s = printer('@-webkit-keyframes ') + serialize(obj.name, printer) + printer('{')
     s += printer(' ').join((printer(b) for b in obj.blocks))
     s += printer('}')
     return s
