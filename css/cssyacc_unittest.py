@@ -2,13 +2,16 @@
 
 
 import csslex, cssyacc, parse
-import unittest
+import unittest, sys
 
 
 class yacc_test(unittest.TestCase):
 
-    def assertParsedContentEquals(self, input, output):
-        self.assertEqual(output.strip(), parse.export('fake.css', parse.parse(input)).strip())
+    def assertParsedContentEquals(self, input_content, output_contents):
+        self.assertEqual(output_contents.strip(), parse.export('fake.css', parse.parse(input_content)).strip())
+
+    def testCharset(self):
+        self.assertParsedContentEquals(u'@charset "blah-blee";', u'@charset "blah-blee";')
 
     def testImportStatements(self):
         self.assertParsedContentEquals(u"""
@@ -31,7 +34,7 @@ class yacc_test(unittest.TestCase):
     cool: story(bro);
   }
 }""", u"""
-@media print{super{cool:story(bro)}}""")
+@media print{super{cool:story(bro);}}""")
 
     def testKeyframesRule(self):
         self.assertParsedContentEquals(u"""
@@ -45,7 +48,7 @@ class yacc_test(unittest.TestCase):
   }
   100% { width: 100px; }
 }""", u"""
-@-webkit-keyframes name{from{some:value} to{some:other(value)} 0%{width:0} 100%{width:100px}}""")
+@-webkit-keyframes name{from{some:value;} to{some:other(value);} 0%{width:0;} 100%{width:100px;}}""")
 
     def testGritStatementList(self):
         self.assertParsedContentEquals(u"""
@@ -75,19 +78,29 @@ class yacc_test(unittest.TestCase):
 <include src="windows.css">
 </if>
 <if expr="is_chromeos">
-some rule{that:is only on "chromeos"}
-@-webkit-keyframes name{from{your:mommas house} to{your:daddys house}}
+some rule{that:is only on "chromeos";}
+@-webkit-keyframes name{from{your:mommas house;} to{your:daddys house;}}
 @media screen{}
 </if>""")
 
-
     def testGritDeclarationList(self):
         self.assertParsedContentEquals(u"""
-    """, u"""
-    """)
+a {
+  b: c;
+  d: e;
+<if expr="is_oswin">
+  f: g;
+  h: i();
+</if>
+  j: 1px solid red;
+  k: l m n o p;
+}""", u"""
+a{b:c;d:e;<if expr="is_oswin">f:g;h:i();</if>j:1px solid red;k:l m n o p;}""")
 
 
+# TODO(dbeam): Figure out how to check for stderr.
 
+      
 #    def testSample(self):
 #        self.assertParsedContentEquals(u"""
 #    """, u"""
@@ -95,4 +108,4 @@ some rule{that:is only on "chromeos"}
 
 
 if __name__ == '__main__':
-  unittest.main()
+    unittest.main()

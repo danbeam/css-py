@@ -170,7 +170,7 @@ def _serialize_Declarations(declarations, printer):
     num_decls = len(declarations)
     for i, decl in enumerate(declarations):
         s += serialize(decl, printer)
-        if isinstance(decl, css.Declaration) and i < num_decls - 1:
+        if isinstance(decl, css.Declaration):
             s += printer(';')
     return s
 
