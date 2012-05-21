@@ -94,8 +94,48 @@ a {
 </if>
   j: 1px solid red;
   k: l m n o p;
+}
+
+q {
+  r: s;
+<if expr="is_macosx">
+  t: u;
+</if>
+  v: w;
+}
+
+x {
+  y: z;
+<if expr="is_osposix">
+  aa: bb;
+</if>
+}
+
+cc {
+<if expr="blah blee">
+  dd: ee;
+</if>
+  ff: gg;
+}
+
+hh {
+<if expr="blee blah">
+  hh: ii;
+</if>
 }""", u"""
-a{b:c;d:e;<if expr="is_oswin">f:g;h:i();</if>j:1px solid red;k:l m n o p;}""")
+a{b:c;d:e;<if expr="is_oswin">f:g;h:i();</if>j:1px solid red;k:l m n o p;}
+q{r:s;<if expr="is_macosx">t:u;</if>v:w;}
+x{y:z;<if expr="is_osposix">aa:bb;</if>}
+cc{<if expr="blah blee">dd:ee;</if>ff:gg;}
+hh{<if expr="blee blah">hh:ii;</if>}""")
+
+
+    def testSelectorAttribute(self):
+        self.assertParsedContentEquals(u"""
+a[d=e]:not(b) ~ c > e[f|=g][h^=i][j$=k][l*="j"][k~='l'] + m {
+  n: o(p);
+}""", u"""
+a[d=e]:not(b)~c>e[f|=g][h^=i][j$=k][l*="j"][k~='l']+m{n:o(p);}""")
 
 
 # TODO(dbeam): Figure out how to check for stderr.
